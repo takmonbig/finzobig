@@ -89,7 +89,7 @@ async def calculate(b: CalcIn):
     total = daily * b.days
     return {"deposit": dep, "daily": daily, "days": b.days, "total_payout": total, "net_gain": total - dep,
             "simple_daily_rate_percent": round(daily / dep * 100, 3), "breakeven_day": -(-dep // daily) if daily else None,
-            "hypothetical": True, "note": "Calculation: total = daily x days; net = total - plan amount. Figures are in coins and are not guaranteed."}
+            "hypothetical": True, "note": "Calculation: total = daily x days; net = total - plan amount."}
 
 
 @router.get("/push/public-key")
@@ -181,7 +181,7 @@ async def enroll(plan_id: str, body: EnrollIn, user=Depends(get_current_user)):
     if await db.demo_plan_enrollments.find_one({"idem_key": f"{user['id']}:{body.idem_key}"}):
         raise HTTPException(409, "Duplicate enrollment request")
     eid = uid()
-    await post_ledger(user["id"], "demo_coins", -plan["deposit"], "plan_enrollment", f"Simulated enrollment: {plan['name']}", ref=eid, idem_key=f"enroll:{user['id']}:{body.idem_key}")
+    await post_ledger(user["id"], "demo_coins", -plan["deposit"], "plan_enrollment", f"Plan enrollment: {plan['name']}", ref=eid, idem_key=f"enroll:{user['id']}:{body.idem_key}")
     doc = {"id": eid, "user_id": user["id"], "plan_id": plan["id"], "plan_name": plan["name"], "plan_version": plan["version"], "amount": plan["deposit"],
            "daily": plan["daily"], "duration_days": plan["duration_days"], "days_credited": 0, "credited_total": 0, "status": "active",
            "started_at": iso(), "idem_key": f"{user['id']}:{body.idem_key}", "hypothetical": True, "created_at": iso()}

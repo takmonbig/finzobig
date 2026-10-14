@@ -62,10 +62,10 @@ export function Hero({ c }) {
           <a href="#benefits" className="btn-ghost" data-testid="hero-explore-btn">Explore Platform</a>
           <a href="#plans" className="btn-ghost !text-violet-200 !border-violet-400/40" data-testid="hero-demo-plans-btn">View Plans</a>
         </motion.div>
-        <div className="mt-8 flex gap-3 items-start rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 max-w-xl" data-testid="hero-disclaimer">
+        {c?.disclaimer && <div className="mt-8 flex gap-3 items-start rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 max-w-xl" data-testid="hero-disclaimer">
           <Icons.AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-          <p className="text-xs sm:text-sm text-amber-100/90">{c?.disclaimer}</p>
-        </div>
+          <p className="text-xs sm:text-sm text-amber-100/90">{c.disclaimer}</p>
+        </div>}
       </div>
       <DashboardPreview />
     </section>

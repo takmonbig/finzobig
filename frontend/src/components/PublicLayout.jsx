@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
+import { InstallButton, TrustBadge } from "@/components/Pwa";
 import { Menu, X, ShieldAlert } from "lucide-react";
 import { useSite } from "@/components/common";
 import { useAuth } from "@/context/AuthContext";
@@ -26,6 +27,7 @@ function TopNav({ name }) {
           {NAV.map(([l, h]) => <a key={h} href={h} className="hover:text-amber-300 transition-colors" data-testid={`nav-${l.toLowerCase().replace(/ /g, "-")}`}>{l}</a>)}
         </nav>
         <div className="hidden lg:flex items-center gap-3">
+          <InstallButton />
           {user ? <Link to={dash} className="btn-gold" data-testid="nav-dashboard-btn">Open dashboard</Link> : (<>
             <Link to="/login" className="text-sm text-slate-300 hover:text-white" data-testid="nav-login-btn">Sign in</Link>
             <Link to="/register" className="btn-gold !py-2" data-testid="nav-register-btn">Create Account</Link></>)}
@@ -62,8 +64,8 @@ function Footer({ site }) {
           {FOOT.map(([l, slug]) => <Link key={slug} to={`/legal/${slug}`} className="text-slate-400 hover:text-amber-300 transition-colors" data-testid={`footer-${slug}`}>{l}</Link>)}
         </div>
       </div>
-      <div className="border-t border-slate-800/70 py-5 px-4 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
-        © {new Date().getFullYear()} {s.site_name}
+      <div className="border-t border-slate-800/70 py-5 px-4 text-center text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-center gap-3">
+        <TrustBadge /><span>© {new Date().getFullYear()} {s.site_name}</span>
       </div>
     </footer>
   );

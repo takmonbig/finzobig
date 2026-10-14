@@ -37,7 +37,7 @@ def legal(title, paras):
 CONTENT = {
     "hero": {"headline": "One Platform. Complete Financial Account Management.",
              "description": "Explore participation plans, manage your USDT wallet, understand your team network, and follow every transaction from one secure dashboard.",
-             "disclaimer": "Plan figures are not guaranteed. Plans run on Finzo Coins, which have no cash value and cannot be withdrawn or exchanged for USDT."},
+             "disclaimer": ""},
     "banners": [],
     "benefits": [
         {"title": "Transparent transaction history", "text": "Every record is an immutable ledger entry with a running balance.", "icon": "ScrollText"},
@@ -62,8 +62,6 @@ CONTENT = {
     "faqs": [
         {"q": "How do I register?", "a": "Click Create Account, enter your name, email, mobile number with country code and a password, accept the terms, and optionally add a referral code."},
         {"q": "How does account verification work?", "a": "Submit account verification from your profile. An administrator reviews it."},
-        {"q": "What are coins?", "a": "Finzo Coins are the internal unit used by participation plans. They have no cash value and cannot be withdrawn or exchanged for USDT."},
-        {"q": "How do plans work?", "a": "Plans allocate coins and add a daily coin amount for the plan term. Plan figures are not guaranteed and plan earnings cannot be withdrawn."},
         {"q": "Which payment methods are supported?", "a": "USDT on TRON (TRC20) and BNB Smart Chain (BEP20). Deposits are credited automatically after on-chain confirmation, and withdrawals are verified on-chain."},
         {"q": "How does the team structure work?", "a": "People who register with your code are your direct referrals (generation 1). Their referrals form generations 2–5."},
         {"q": "How is my account secured?", "a": "Passwords are hashed with bcrypt, logins are rate limited, sessions can be revoked and you can enable two-factor authentication."},

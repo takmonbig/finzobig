@@ -174,7 +174,7 @@ async def security_event(kind, user_id=None, ip="", details=None, severity="info
 
 # ---------------- wallet / ledger (integer minor units) ----------------
 ACCOUNTS = {
-    "demo_coins": "Plan coins (no cash value)",
+    "demo_coins": "Plan coins",
     "sim_earnings": "Plan earnings (coins, not withdrawable)",
     "verified": "USDT balance",
     "promo": "Promotional credits",

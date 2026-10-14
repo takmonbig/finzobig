@@ -68,7 +68,7 @@ export default function RewardDetail() {
             <p className="text-slate-400 mt-3 text-sm">{r.description}</p>
             <div className="grid grid-cols-2 gap-3 mt-5">
               <div className="rounded-xl bg-slate-950/60 border border-slate-800 p-3"><p className="text-[11px] text-slate-500">Team milestone</p><p className="font-num text-amber-300">{coins(r.milestone, 0)}</p></div>
-              <div className="rounded-xl bg-slate-950/60 border border-slate-800 p-3"><p className="text-[11px] text-slate-500">Availability</p><p className="font-num text-white" data-testid="reward-inventory">{r.inventory > 0 ? `${r.inventory} concept units` : "Unavailable"}</p></div>
+              <div className="rounded-xl bg-slate-950/60 border border-slate-800 p-3"><p className="text-[11px] text-slate-500">Availability</p><p className="font-num text-white" data-testid="reward-inventory">{r.inventory > 0 ? `${r.inventory} units` : "Unavailable"}</p></div>
               {r.duration && <div className="rounded-xl bg-slate-950/60 border border-slate-800 p-3 col-span-2"><p className="text-[11px] text-slate-500">Duration</p><p className="text-white">{r.duration}</p></div>}
             </div>
           </Glass>

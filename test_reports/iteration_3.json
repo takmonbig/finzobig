@@ -1,0 +1,33 @@
+{
+  "summary": "Iteration 3 - validated real-USDT deposit/withdrawal chain-verification flow and cleaned branding wording. Backend: 16/16 new tests pass covering payment-method address validation (TRC20 base58+checksum, BEP20 0x+40hex; invalid rejected 400), deposit creation (placeholder address -> 400 'not configured yet', valid address returns draft with expected_display + 4-decimal offset + expires_at), deposit submit (bad hash -> 400 'hexadecimal', bad evidence folder rejected), withdrawal destination validation (bad TRON/BEP20 -> 400), admin deposit actions (credit_onchain requires submitted reference, 'verify' no longer accepted -> 422), admin withdrawal completed requires payout hash, reconciliation consistent=true. Frontend: /app/deposit shows new PayStep flow (deposit-pay-step/deposit-exact-amount/copy-amount-btn/deposit-reference-input/deposit-screenshot/deposit-submit-btn, Re-check button for pending), placeholder address returns 'This payment method is not configured yet' banner. Risk notices present on homepage plans+rewards sections, /app/plans, /app/rewards, /rewards/:slug. No 'DEMO MODE' badge in dashboard; no 'Hypothetical' plan tags; no 'Demo' hero eyebrow. Admin finance page intact.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/rewards/:slug (RewardDetail.jsx line 71)", "issues": ["Availability still reads '{inventory} concept units' - leftover 'concept' wording. Should be 'units' or 'spots'."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_iter3_chain.py", "/app/test_reports/pytest/iter3_results.xml"],
+  "action_items": [
+    "Remove 'concept units' wording in /app/frontend/src/pages/RewardDetail.jsx:71 - change `${r.inventory} concept units` to `${r.inventory} units` (last 'concept' leftover from branding cleanup).",
+    "Optional cleanup: unused DemoTag import still present in /app/frontend/src/pages/app/UserPages.jsx, TeamPages.jsx, admin/AdminContent.jsx and the DemoTag export in /app/frontend/src/components/common.jsx line 81 is dead code - safe to delete.",
+    "AdminFinance.jsx line 132 uses label 'Plan amounts (coins)' bound to `lia.data.hypothetical_deposits` field - admin-facing only, but the backend key is still named `hypothetical_deposits` in /api/admin/liability; rename to `plan_coin_deposits` for consistency."
+  ],
+  "critical_code_review_comments": [
+    "chain.py tron_hex: good base58+double-sha256 checksum validation. find_transfer uses contract-address matching correctly on both chains.",
+    "routes_user.create_deposit: 3-open-draft limit counts only status='draft' but OPEN_DEP includes 'pending_verification'. If a user has 3 pending_verification plus 1 new draft they can keep stacking. Consider counting both statuses in the limit check (line 358).",
+    "routes_user.submit_deposit: `verify_asset` call happens before the atomic status transition - if evidence verifies but transition fails (409/400) the evidence row is orphaned (inserted at line 388 even if find_one_and_update returns None). Move evidence insert after the atomic update succeeds.",
+    "routes_admin.withdrawal_action: when 'completed' action fails on chain lookup (503) the frontend has no way to retry without reopening - acceptable, but ensure UI surfaces the 503 clearly.",
+    "No unique index on payment_submissions.reference_norm visible from code - duplicate-hash detection relies on find_one first then insert which has a race. The DuplicateKeyError catch at submit_deposit:395 suggests an index exists; verify db.payment_submissions has unique index on (method_type, reference_norm).",
+    "chain.check_deposit retries on ChainError via 60s backoff - good. However recheck_deposits in jobs.py runs every 30s and only picks up `next_check_at <= now` entries; expired draft deposits get force-failed inside recheck_deposits (not in create_deposit) which means expiry happens in bursts of 30s - acceptable."
+  ],
+  "updated_files": ["/app/backend/tests/test_iter3_chain.py (new)"],
+  "success_rate": {"backend": "100% (16/16 new tests + regression unaffected)", "frontend": "~95% (one minor wording leftover)"},
+  "test_credentials": "Admin: takmonboost90@gmail.com / Admin@Demo2026; Demo users: demo.a..demo.f@example.com / Demo@12345",
+  "seed_data_creation": "During tests the BEP20 payment-method address was temporarily set to 0xaaaa...a (40 hex 'a') and the TRC20 address to TDtCBCujGMdNUmoAr4uLKtyA812iZzoXzd (derived from a real recent TRC20 transfer recipient hex 2aedbc0f62fc3d0d845855945bc5b9efcb40d6d8). A pytest teardown fixture restored BOTH addresses to '[Set your TRC20 receiving address]' / '[Set your BEP20 receiving address]' directly in MongoDB (db.payment_methods) and cancelled any TEST drafts for demo.c. Verified clean post-run: addresses are back to placeholders, demo.c has 0 open deposits. NO wallet balances were credited. No admin credit_onchain was executed. No real on-chain submissions were made - only invalid/random hashes to assert validation.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend test file: /app/backend/tests/test_iter3_chain.py (16 tests, all pass). Run with: REACT_APP_BACKEND_URL=... MONGO_URL=mongodb://localhost:27017 DB_NAME=test_database pytest backend/tests/test_iter3_chain.py -n 0. Fixture cleanup_at_end restores both payment-method addresses to placeholders via direct Mongo access. hex_to_tron() helper in the file converts hex40 -> base58 TRON address with correct checksum for seeding real-chain tests. The real on-chain SUCCESS path (admin credit_onchain actually crediting cents from a real TRC20 transfer) was NOT exercised to keep the test suite side-effect free; the admin action is reachable via POST /api/admin/deposits/{id}/action {action:'credit_onchain'} and should credit floor(value/1e4) cents exactly once (idem_key `dep:{did}`). Reconciliation remains consistent.",
+  "rca of the issue": "N/A - no bugs blocking functionality. Only minor wording leftover ('concept units' on reward detail)."
+}

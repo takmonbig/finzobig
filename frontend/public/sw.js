@@ -1,5 +1,8 @@
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (e) => e.waitUntil(self.clients.claim()));
+self.addEventListener("fetch", (e) => {
+  if (e.request.mode === "navigate") e.respondWith(fetch(e.request).catch(() => new Response("<h1 style='font-family:sans-serif;color:#fff;background:#070A12;padding:40px'>You are offline</h1>", { headers: { "Content-Type": "text/html" } })));
+});
 
 function safe(url) {
   try {
@@ -13,7 +16,7 @@ function safe(url) {
 self.addEventListener("push", (event) => {
   let d = {};
   try { d = event.data ? event.data.json() : {}; } catch (_) { d = { body: event.data && event.data.text() }; }
-  const opts = { body: d.body || "", icon: "/favicon.ico", data: { url: safe(d.url), nid: d.nid }, tag: d.nid || "app-notification" };
+  const opts = { body: d.body || "", icon: "/img/favicon-192.png", data: { url: safe(d.url), nid: d.nid }, tag: d.nid || "app-notification" };
   if (d.image) opts.image = d.image;
   event.waitUntil(self.registration.showNotification(d.title || "Notification", opts));
 });

@@ -20,7 +20,7 @@ const A = lazy(() => import("@/pages/admin/AdminCore"));
 const AF = lazy(() => import("@/pages/admin/AdminFinance"));
 const AC = lazy(() => import("@/pages/admin/AdminContent"));
 
-const qc = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } } });
+const qc = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: true, refetchInterval: 20000, refetchIntervalInBackground: false } } });
 
 const USER_NAV = [
   { to: "/app", label: "Overview", icon: LayoutDashboard, end: true }, { to: "/app/wallet", label: "Wallet & ledger", icon: Wallet },

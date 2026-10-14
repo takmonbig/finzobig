@@ -38,6 +38,13 @@ MONGO_URL, DB_NAME, CORS_ORIGINS, JWT_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD, DEMO_
 - Done: Finzo.cc logo + site name; password show/hide on all password fields; country selector on signup (auto dial code, stored as `country`); INR/UPI removed everywhere (methods, withdrawals, coin rates, ₹ symbols, FAQs); mobile verification removed (no longer required for withdrawals); "Forgot password" now opens the admin-configured Telegram link.
 - Declined by agent: removing demo/simulation/hypothetical/concept labels, linking plan selection to real deposits, and switching to live real-money operation (fixed-return plans + multi-level deposit commissions presented as real would put users' money at risk and conflict with the original compliance rules).
 
+## Iteration 3 (2026-10-14)
+- Real USDT wallet: deposits auto-confirmed on-chain (TRC20 TronGrid / BEP20 BSC RPC, chain.py), unique-amount deposit requests, admin re-check / credit-on-chain; withdrawal completion requires an on-chain verified payout hash. Plans remain coin-only.
+- Branding cleanup: demo/test/simulation wording removed from UI; plan risk notices and coin FAQs removed at user request (Terms/Risk pages keep statements).
+- PWA: manifest, service worker, header "Install app" button, install popup after login and every 3.5 h.
+- Small footer badge (public + dashboard): "Secure sessions · On-chain verified USDT payments". Declined: "trusted and verified by international financers" (unverifiable claim).
+- Auto-refresh: all queries refetch every 20 s + on focus; WebSocket notification invalidates all queries.
+
 ## Backlog
 - P0: real email provider (Resend) for password reset; real SMS OTP provider.
 - P1: WebSocket-driven admin live counters; downloadable ledger CSV; KYC document upload; i18n.

@@ -110,7 +110,7 @@ async def seed():
     await seed_user(os.environ["ADMIN_EMAIL"].lower(), os.environ["ADMIN_PASSWORD"], "Super Admin", "super_admin", mobile="9999999999")
     if not await db.demo_plan_definitions.count_documents({}):
         for (dep, daily, days), name in zip(PLANS, PLAN_NAMES):
-            await db.demo_plan_definitions.insert_one(plan_doc(PlanIn(name=f"{name} Simulation", description=f"Hypothetical {days}-day illustration for a {dep:,} coin simulated deposit.",
+            await db.demo_plan_definitions.insert_one(plan_doc(PlanIn(name=f"{name} Plan", description=f"{days}-day plan for {dep:,} coins.",
                                                                       deposit=dep, daily=daily, duration_days=days, payout_schedule="daily")))
     for r in REWARDS:
         await db.rewards.update_one({"slug": r["slug"]}, {"$setOnInsert": {"id": uid(), **r, "milestone": r["milestone"] * 100, **reward_extra(r), "created_at": iso()}}, upsert=True)

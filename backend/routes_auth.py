@@ -95,7 +95,7 @@ async def register(body: RegisterIn, request: Request, response: Response):
         await security_event("multiple_accounts_same_ip", user["id"], ip, {"count_24h": recent}, "warning")
     await ensure_wallets(user["id"])
     s = await get_settings()
-    await post_ledger(user["id"], "demo_coins", int(s["signup_demo_grant"]) * 100, "signup_grant", "Welcome demo coins (simulated)", idem_key=f"grant:{user['id']}")
+    await post_ledger(user["id"], "demo_coins", int(s["signup_demo_grant"]) * 100, "signup_grant", "Welcome coins", idem_key=f"grant:{user['id']}")
     await recompute_ancestors(user)
     return await start_session(user, request, response)
 

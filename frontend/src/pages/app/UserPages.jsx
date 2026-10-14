@@ -52,7 +52,7 @@ function Overview() {
       <PageHeader title="Account overview" subtitle="Your USDT wallet, plans and team at a glance." />
       <Banners />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Stat label="Available coins" value={coins(w.demo_coins?.available)} icon={Coins} testid="stat-demo-coins" hint="No cash value" />
+        <Stat label="Available coins" value={coins(w.demo_coins?.available)} icon={Coins} testid="stat-demo-coins" />
         <Stat label="Total in plans" value={coins(d.total_sim_deposits)} icon={TrendingUp} tone="blue" testid="stat-sim-deposits" hint="Coins" />
         <Stat label="Active plans" value={d.active_plans} icon={Layers} tone="violet" testid="stat-active-plans" />
         <Stat label="Plan earnings" value={coins(d.sim_earnings)} icon={Activity} tone="emerald" testid="stat-sim-earnings" hint="Coins · not withdrawable" />
@@ -119,7 +119,7 @@ function Plans() {
   });
   return (
     <div data-testid="plans-page">
-      <PageHeader title="Participation plans" subtitle="Plan figures are not guaranteed. Plans run on Finzo Coins, which have no cash value and cannot be withdrawn or exchanged for USDT." />
+      <PageHeader title="Participation plans" subtitle="Choose a plan and follow its daily progress from your dashboard." />
       {plans.isLoading ? <Loader /> : (
         <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {plans.data.map((p, i) => (

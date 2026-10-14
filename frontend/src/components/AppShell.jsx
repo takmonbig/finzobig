@@ -11,6 +11,7 @@ import { isExternal } from "@/lib/linkify";
 import { useAuth } from "@/context/AuthContext";
 import { LinkText, ExternalPreview, RankBadge } from "@/components/common";
 import { Logo } from "@/components/PublicLayout";
+import { InstallButton, InstallPopup, TrustBadge } from "@/components/Pwa";
 
 function useRealtime(enabled) {
   const qc = useQueryClient();
@@ -24,7 +25,7 @@ function useRealtime(enabled) {
       ws.onmessage = (ev) => {
         const msg = JSON.parse(ev.data || "{}");
         if (msg.type === "notification") {
-          ["notifications", "unread", "popups", "dashboard", "banners"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+          qc.invalidateQueries();
           if (!msg.data.popup) toast(msg.data.title, { description: msg.data.message?.slice(0, 120) });
         }
       };
@@ -141,6 +142,7 @@ export default function AppShell({ items, area }) {
           <button className="lg:hidden p-2 -ml-2" onClick={() => setMobile(true)} data-testid="mobile-nav-toggle" aria-label="Open menu"><Menu className="w-5 h-5" /></button>
           {area === "admin" && <span className="text-[11px] uppercase tracking-widest px-2.5 py-1 rounded-full border border-amber-400/40 text-amber-200">Super Admin</span>}
           <div className="flex-1" />
+          <InstallButton />
           <Link to={area === "admin" ? "/admin/campaigns" : "/app/notifications"} className="relative p-2 rounded-xl hover:bg-slate-800" data-testid="topbar-notifications-btn" aria-label="Notifications">
             <Bell className="w-5 h-5" />
             {unread.data > 0 && <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-slate-950 text-[10px] font-bold grid place-items-center" data-testid="unread-count">{unread.data}</span>}
@@ -154,6 +156,8 @@ export default function AppShell({ items, area }) {
           {area === "user" && <NotificationPrompt user={user} />}
           <Outlet />
         </main>
+        <footer className="px-4 py-4 flex justify-center border-t border-slate-800/60"><TrustBadge /></footer>
+        {area === "user" && <InstallPopup />}
       </div>
       <PopupAnnouncements />
     </div>

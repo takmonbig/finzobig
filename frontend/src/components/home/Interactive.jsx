@@ -12,7 +12,7 @@ export function PlansSection({ plans = [] }) {
   const [sel, setSel] = useState(null);
   return (
     <section id="plans" className="max-w-7xl mx-auto px-4 sm:px-6 py-20">
-      <SectionHead eyebrow="Participation plans" title="Eight participation plans." text="Plan figures are not guaranteed. Plans run on Finzo Coins, which have no cash value and cannot be withdrawn or exchanged for USDT." />
+      <SectionHead eyebrow="Participation plans" title="Eight participation plans." text="Choose a plan that fits your goals and follow every day of progress from your dashboard." />
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {plans.map((p, i) => (
           <Reveal key={p.id} delay={i * 0.04}>
