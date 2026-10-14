@@ -118,6 +118,26 @@ async def user_downline(user_id: str, admin=Depends(require_admin)):
     return {"items": out, "by_generation": by_gen, "total": len(out)}
 
 
+@router.get("/users/{user_id}/downline/export")
+async def export_downline(user_id: str, request: Request, admin=Depends(require_admin)):
+    root = await db.users.find_one({"id": user_id}, {"_id": 0, "email": 1, "full_name": 1})
+    if not root:
+        raise HTTPException(404, "User not found")
+    data = await user_downline(user_id, admin)
+    names = {r["id"]: r["full_name"] for r in data["items"]}
+    names[user_id] = root["full_name"]
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(["Generation", "Name", "Email", "Country", "Mobile", "Referral code", "Referred by", "Rank", "Status", "KYC", "Joined", "Last login", "Last login IP", "Last active", "USDT balance", "Verified deposits (USDT)"])
+    for r in sorted(data["items"], key=lambda x: (x["generation"], x.get("created_at", ""))):
+        w.writerow([f"T{r['generation']}", r["full_name"], r.get("email"), r.get("country") or "", f"{r.get('country_code') or ''} {r.get('mobile') or ''}".strip(), r.get("referral_code"),
+                    names.get(r["parent_id"], ""), r.get("rank", "Member"), "deleted" if r.get("deleted") else r.get("status"), r.get("kyc_status", ""), r.get("created_at", ""),
+                    r.get("last_login_at", ""), r.get("last_login_ip", ""), r.get("last_active_at", ""), f"{r['usdt_balance'] / 100:.2f}", f"{r['verified_deposits'] / 100:.2f}"])
+    await audit(admin, "user.downline_export", "user", user_id, {"rows": data["total"]}, client_ip(request))
+    fname = re.sub(r"[^A-Za-z0-9._-]", "_", root["email"])
+    return StreamingResponse(iter([buf.getvalue()]), media_type="text/csv", headers={"Content-Disposition": f"attachment; filename=downline_{fname}.csv"})
+
+
 class UserEditIn(BaseModel):
     full_name: str | None = Field(default=None, min_length=2, max_length=80)
     group: str | None = Field(default=None, max_length=40)

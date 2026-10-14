@@ -52,7 +52,8 @@ function Downline({ id, onOpen }) {
   const rows = data.items.filter((r) => (!gen || r.generation === Number(gen)) && (!q || `${r.full_name} ${r.email}`.toLowerCase().includes(q.toLowerCase())));
   return (
     <div className="space-y-3" data-testid="ud-downline">
-      <div className="flex flex-wrap gap-2 text-xs">{data.by_generation.map((c, i) => <span key={i} className="px-2 py-1 rounded-lg bg-slate-900 border border-slate-800">T{i + 1}: <b className="text-white">{c}</b></span>)}<span className="px-2 py-1 rounded-lg bg-amber-500/10 text-amber-200">Total {data.total}</span></div>
+      <div className="flex flex-wrap gap-2 text-xs">{data.by_generation.map((c, i) => <span key={i} className="px-2 py-1 rounded-lg bg-slate-900 border border-slate-800">T{i + 1}: <b className="text-white">{c}</b></span>)}<span className="px-2 py-1 rounded-lg bg-amber-500/10 text-amber-200">Total {data.total}</span>
+        <button className="btn-ghost !py-1 !px-3 !text-xs ml-auto" disabled={!data.total} onClick={() => downloadCsv(`/admin/users/${id}/downline/export`, `downline_${id}.csv`)} data-testid="ud-downline-export-btn"><Download className="w-3.5 h-3.5" />Download spreadsheet</button></div>
       <div className="flex gap-2"><Input className="inp" placeholder="Search name or email" value={q} onChange={(e) => setQ(e.target.value)} data-testid="ud-downline-search" />
         <select className={sel} value={gen} onChange={(e) => setGen(e.target.value)} data-testid="ud-downline-gen"><option value="">All</option>{[1, 2, 3, 4, 5].map((g) => <option key={g} value={g}>{`T${g}`}</option>)}</select></div>
       <div className="overflow-x-auto"><table className="tbl"><thead><tr><th>Gen</th><th>Member</th><th>Contact</th><th>Rank</th><th>Status</th><th>Joined</th><th>Last login</th><th>Last active</th><th>USDT bal.</th><th>Deposited</th></tr></thead>
@@ -75,7 +76,7 @@ function UserDetail({ id, onClose, onOpen }) {
   const u = data?.user;
   return (
     <Dialog open={!!id} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-[#0C1120] border-amber-500/20 max-w-3xl max-h-[88vh] overflow-y-auto" data-testid="admin-user-dialog">
+      <DialogContent className="bg-[#0C1120] border-amber-500/20 max-w-3xl max-h-[88vh] overflow-y-auto overflow-x-hidden [&>*]:min-w-0" data-testid="admin-user-dialog">
         {isLoading || !u ? <><DialogHeader><DialogTitle className="sr-only">Loading user</DialogTitle></DialogHeader><Loader /></> : (<>
           <DialogHeader><DialogTitle className="flex items-center gap-3">{u.full_name} <RankBadge rank={u.rank} /> <StatusBadge status={u.status} /></DialogTitle></DialogHeader>
           <div className="grid sm:grid-cols-2 gap-3 text-sm">
@@ -96,7 +97,7 @@ function UserDetail({ id, onClose, onOpen }) {
               <Input className="inp font-num" type="number" placeholder="+/- amount" value={adj.amount} onChange={(e) => setAdj({ ...adj, amount: e.target.value })} data-testid="ud-adj-amount" />
               <Input className="inp" placeholder="Reason (audited)" value={adj.memo} onChange={(e) => setAdj({ ...adj, memo: e.target.value })} data-testid="ud-adj-memo" />
               <button className="btn-gold !py-2" disabled={!adj.amount || adj.memo.length < 3} onClick={adjust} data-testid="ud-adj-btn">Post</button></div></div>
-          <Tabs defaultValue="dl"><TabsList className="bg-slate-900 flex-wrap h-auto"><TabsTrigger value="dl" data-testid="ud-tab-downline">Downline</TabsTrigger><TabsTrigger value="dep">Deposits</TabsTrigger><TabsTrigger value="wd">Withdrawals</TabsTrigger><TabsTrigger value="lg" data-testid="ud-tab-ledger">Ledger</TabsTrigger><TabsTrigger value="ss" data-testid="ud-tab-sessions">Logins & sessions</TabsTrigger><TabsTrigger value="en">Plans</TabsTrigger><TabsTrigger value="rk">Rank history</TabsTrigger></TabsList>
+          <Tabs defaultValue="dl" className="min-w-0"><TabsList className="bg-slate-900 flex-wrap h-auto"><TabsTrigger value="dl" data-testid="ud-tab-downline">Downline</TabsTrigger><TabsTrigger value="dep">Deposits</TabsTrigger><TabsTrigger value="wd">Withdrawals</TabsTrigger><TabsTrigger value="lg" data-testid="ud-tab-ledger">Ledger</TabsTrigger><TabsTrigger value="ss" data-testid="ud-tab-sessions">Logins & sessions</TabsTrigger><TabsTrigger value="en">Plans</TabsTrigger><TabsTrigger value="rk">Rank history</TabsTrigger></TabsList>
             <TabsContent value="dl"><Downline id={id} onOpen={onOpen} /></TabsContent>
             <TabsContent value="lg"><div className="overflow-x-auto"><table className="tbl"><thead><tr><th>Date</th><th>Account</th><th>Type</th><th>Memo</th><th>Amount</th><th>Balance</th></tr></thead>
               <tbody>{data.ledger.map((e) => <tr key={e.id}><td className="text-xs whitespace-nowrap">{fdate(e.created_at)}</td><td className="text-xs">{e.account}</td><td className="text-xs">{e.type}</td><td className="text-xs">{e.memo}</td><td className={`font-num ${e.amount >= 0 ? "text-emerald-300" : "text-red-300"}`}>{coins(e.amount)}</td><td className="font-num">{coins(e.balance_after)}</td></tr>)}</tbody></table></div></TabsContent>

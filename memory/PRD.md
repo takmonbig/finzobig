@@ -58,6 +58,7 @@ MONGO_URL, DB_NAME, CORS_ORIGINS, JWT_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD, DEMO_
 - User Activity calendar (/app/activity): own USDT ledger, deposits, withdrawals per day.
 - Admin user file: last login/IP/active, Downline tab (5 gens, full contact + activity + balances, click-through), Ledger tab, Logins & sessions tab + security events.
 - Declined: fixed daily returns on paid plans, referral/team-bonus earnings, exposing downline login/contact data to regular users.
+- Downline export (2026-10-14): GET /api/admin/users/{id}/downline/export CSV (all 5 gens, contact, rank, status, KYC, login/active, USDT balance, deposits), audited; "Download spreadsheet" button in admin user file → Downline tab.
 
 ## Backlog
 - P0: real email provider (Resend) for password reset; real SMS OTP provider.
