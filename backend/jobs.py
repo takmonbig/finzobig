@@ -113,6 +113,8 @@ async def scheduler_loop():
             await dispatch_due()
             from chain import recheck_deposits
             await recheck_deposits()
+            from routes_learn import send_webinar_reminders
+            await send_webinar_reminders()
         except Exception as e:
             log.exception(f"scheduler error: {e}")
         await asyncio.sleep(30)

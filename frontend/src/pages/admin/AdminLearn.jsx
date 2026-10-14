@@ -26,12 +26,13 @@ function WebinarAdmin() {
   const f = v || { ...data, highlights_text: lines(data.highlights) };
   const set = (k, x) => setV({ ...f, [k]: x });
   const t = (label, k, testid) => <Field label={label}><Input className="inp" value={f[k]} onChange={(e) => set(k, e.target.value)} data-testid={testid} /></Field>;
-  const submit = () => { const { highlights_text, stats, key, video_id, ...rest } = f; save.mutate({ ...rest, highlights: unlines(highlights_text), min_watch_seconds: Number(f.min_watch_seconds) || 0 }); };
+  const submit = () => { const { highlights_text, stats, key, video_id, ...rest } = f; save.mutate({ ...rest, highlights: unlines(highlights_text), min_watch_seconds: Number(f.min_watch_seconds) || 0, reminder_hours: Number(f.reminder_hours) || 24 }); };
   return (
     <div className="space-y-5" data-testid="admin-webinar">
       <div className="grid grid-cols-3 gap-4">
         <Stat label="Users" value={data.stats.users} testid="webinar-stat-users" /><Stat label="Started" value={data.stats.started} tone="blue" testid="webinar-stat-started" />
         <Stat label="Completed" value={data.stats.completed} tone="emerald" testid="webinar-stat-completed" hint={data.stats.users ? `${Math.round((data.stats.completed / data.stats.users) * 100)}% of users` : ""} />
+        <Stat label="Reminded" value={data.stats.reminded ?? 0} tone="violet" testid="webinar-stat-reminded" />
       </div>
       <Glass className="space-y-4">
         <div className="flex flex-wrap gap-6">
@@ -44,6 +45,10 @@ function WebinarAdmin() {
         <Field label="Description"><Textarea className="inp" rows={4} value={f.description} onChange={(e) => set("description", e.target.value)} data-testid="webinar-description-input" /></Field>
         <Field label="What you'll learn (one per line)"><Textarea className="inp" rows={4} value={f.highlights_text} onChange={(e) => set("highlights_text", e.target.value)} data-testid="webinar-highlights-input" /></Field>
         <Field label="Minimum watch time before 'I've watched' unlocks (seconds)"><Input className="inp font-num" type="number" value={f.min_watch_seconds} onChange={(e) => set("min_watch_seconds", e.target.value)} data-testid="webinar-min-watch-input" /></Field>
+        <div className="grid sm:grid-cols-2 gap-3 items-end">
+          <label className="flex items-center gap-2 text-sm"><Switch checked={f.reminder_enabled ?? true} onCheckedChange={(x) => set("reminder_enabled", x)} data-testid="webinar-reminder-switch" />Remind members who haven't finished</label>
+          <Field label="Send reminder after (hours since sign-up)"><Input className="inp font-num" type="number" value={f.reminder_hours ?? 24} onChange={(e) => set("reminder_hours", e.target.value)} data-testid="webinar-reminder-hours-input" /></Field>
+        </div>
         {data.video_id && <a href={`https://www.youtube.com/watch?v=${data.video_id}`} target="_blank" rel="noopener noreferrer" className="text-xs text-amber-400 inline-flex items-center gap-1"><ExternalLink className="w-3 h-3" />Current video: {data.video_id}</a>}
         <ErrorBox error={err} />
         <button className="btn-gold" disabled={save.isPending} onClick={submit} data-testid="webinar-save-btn">Save webinar</button>

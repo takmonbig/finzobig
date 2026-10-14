@@ -4,7 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from pymongo.errors import DuplicateKeyError
 
-from core import db, iso, uid, get_current_user, require_admin, audit, client_ip, strip_html
+from datetime import timedelta
+
+from core import db, iso, uid, now, get_current_user, require_admin, audit, client_ip, strip_html, notify_user, send_push
 
 router = APIRouter(prefix="/api")
 P0 = {"_id": 0}
@@ -20,6 +22,7 @@ WEBINAR_DEFAULT = {
     "highlights": ["How your USDT wallet, deposits and withdrawals work", "Choosing a participation plan and tracking it daily",
                    "Building your team and growing your rank", "Rewards, notifications and getting support"],
     "cta_text": "Continue to my dashboard", "min_watch_seconds": 60,
+    "reminder_enabled": True, "reminder_hours": 24,
 }
 GUIDES = [
     ("how-to-deposit-usdt", "How to deposit USDT", "ArrowDownToLine", "Send USDT to your wallet and get it credited automatically.",
@@ -87,6 +90,8 @@ class WebinarIn(BaseModel):
     highlights: list[str] = Field(max_length=8)
     cta_text: str = Field(min_length=2, max_length=60)
     min_watch_seconds: int = Field(ge=0, le=3600)
+    reminder_enabled: bool = True
+    reminder_hours: int = Field(default=24, ge=1, le=720)
 
 
 @router.get("/admin/webinar")
@@ -94,8 +99,28 @@ async def admin_webinar(admin=Depends(require_admin)):
     w = await db.webinar_config.find_one({"key": "main"}, P0)
     base = {"role": "user", "deleted": {"$ne": True}}
     stats = {"users": await db.users.count_documents(base), "started": await db.users.count_documents({**base, "webinar_started_at": {"$exists": True}}),
-             "completed": await db.users.count_documents({**base, "webinar_completed_at": {"$exists": True}})}
-    return {**w, "stats": stats}
+             "completed": await db.users.count_documents({**base, "webinar_completed_at": {"$exists": True}}),
+             "reminded": await db.users.count_documents({**base, "webinar_reminder_at": {"$exists": True}})}
+    return {"reminder_enabled": True, "reminder_hours": 24, **w, "stats": stats}
+
+
+async def send_webinar_reminders():
+    w = await db.webinar_config.find_one({"key": "main"}, P0)
+    if not w or not w.get("enabled") or not w.get("video_id") or not w.get("reminder_enabled", True):
+        return 0
+    cutoff = iso(now() - timedelta(hours=w.get("reminder_hours", 24)))
+    q = {"role": "user", "status": "active", "deleted": {"$ne": True}, "created_at": {"$lte": cutoff},
+         "webinar_completed_at": {"$exists": False}, "webinar_reminder_at": {"$exists": False}}
+    sent = 0
+    for u in await db.users.find(q, {"_id": 0, "id": 1}).to_list(200):
+        if not await db.users.find_one_and_update({"id": u["id"], "webinar_reminder_at": {"$exists": False}}, {"$set": {"webinar_reminder_at": iso()}}):
+            continue
+        title = "Your welcome webinar is waiting"
+        msg = f"Take {w.get('duration') or 'a few minutes'} to watch \"{w['title']}\" and learn how everything works."
+        n = await notify_user(u["id"], title, msg, kind="system", link="/app/webinar", cta_label="Watch now")
+        await send_push(u["id"], {"title": title, "body": msg, "url": "/app/webinar", "nid": n["id"] if n else None})
+        sent += 1
+    return sent
 
 
 @router.put("/admin/webinar")
