@@ -52,6 +52,13 @@ MONGO_URL, DB_NAME, CORS_ORIGINS, JWT_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD, DEMO_
 - Meta Pixel management (/admin/pixels): multiple pixels, edit/replace/delete/pause, per-pixel events, test button; fbq loaded site-wide (PageView, CompleteRegistration, ViewContent, Lead, InitiateCheckout).
 - Landing "Team bonus" section: 5 rank cards with T1–T5 bars, generation explainer, rank & bonus table; note that bonus payouts are not active.
 
+## Iteration 6 (2026-10-14)
+- Mobile overflow fixed site-wide (html/body/#root overflow-x clip); plans removed from user dashboard (/app/plans → /app/deposit); deposit page preset amount chips; admin "approve_manual" deposit action (credits requested amount after admin confirms receipt in own wallet).
+- Webinar popup: whole card clickable, ✕/Esc skip for 3 h; webinar reminder job (once per user after N hours, inbox + push), admin toggle/hours + "Reminded" stat.
+- User Activity calendar (/app/activity): own USDT ledger, deposits, withdrawals per day.
+- Admin user file: last login/IP/active, Downline tab (5 gens, full contact + activity + balances, click-through), Ledger tab, Logins & sessions tab + security events.
+- Declined: fixed daily returns on paid plans, referral/team-bonus earnings, exposing downline login/contact data to regular users.
+
 ## Backlog
 - P0: real email provider (Resend) for password reset; real SMS OTP provider.
 - P1: WebSocket-driven admin live counters; downloadable ledger CSV; KYC document upload; i18n.

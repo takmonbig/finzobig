@@ -155,7 +155,7 @@ async def dashboard(user=Depends(get_current_user)):
 
 @router.get("/activity/calendar")
 async def activity_calendar(month: str, user=Depends(get_current_user)):
-    if not re.fullmatch(r"\d{4}-\d{2}", month):
+    if not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", month):
         raise HTTPException(400, "month must be YYYY-MM")
     q = {"user_id": user["id"], "created_at": {"$regex": f"^{month}"}}
     ledger = await db.ledger_transactions.find({**q, "account": {"$in": ["verified", "promo"]}}, {"_id": 0, "id": 1, "account": 1, "amount": 1, "type": 1, "memo": 1, "created_at": 1}).to_list(2000)

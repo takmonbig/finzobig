@@ -76,7 +76,7 @@ function UserDetail({ id, onClose, onOpen }) {
   return (
     <Dialog open={!!id} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="bg-[#0C1120] border-amber-500/20 max-w-3xl max-h-[88vh] overflow-y-auto" data-testid="admin-user-dialog">
-        {isLoading || !u ? <Loader /> : (<>
+        {isLoading || !u ? <><DialogHeader><DialogTitle className="sr-only">Loading user</DialogTitle></DialogHeader><Loader /></> : (<>
           <DialogHeader><DialogTitle className="flex items-center gap-3">{u.full_name} <RankBadge rank={u.rank} /> <StatusBadge status={u.status} /></DialogTitle></DialogHeader>
           <div className="grid sm:grid-cols-2 gap-3 text-sm">
             <p>Email: <span className="text-white">{u.email}</span></p><p>Mobile: {u.country_code} {u.mobile} {u.mobile_verified ? "✓" : "(unverified)"}</p>

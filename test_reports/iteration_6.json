@@ -1,0 +1,37 @@
+{
+  "summary": "Iteration 6 - Validated Activity calendar + admin downline/sessions/ledger + privacy. Backend: 8/8 tests pass (test_iter6_activity.py). Covered: (1) GET /api/activity/calendar auth required (401), invalid month format rejected (400), returns {month,ledger,deposits,withdrawals} scoped to caller. (2) Admin GET /api/admin/users/{id}/downline returns 5 items for demo.a with by_generation=[1,1,1,1,1], exposes email/mobile/rank/usdt_balance/verified_deposits; non-admin user gets 403. (3) GET /api/admin/users/{id} returns sessions (no refresh_token_hash), security_events, ledger; never includes password_hash or totp_secret. (4) Regular user GET /api/team/members does NOT include email/mobile/last_login_at/last_active_at for downline (privacy). (5) E2E: created TEST_ user via /api/auth/register, set TRC20 method addr to TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t, POST /api/deposits ($150, draft), admin approve_manual -> /api/activity/calendar shows today's ledger credit (+150) and the verified deposit entry. Frontend (390x844): /app/activity renders, cal-month cycles (October 2026 -> September 2026 -> October 2026), cal-day click opens 'No activity on this day' day details card, scrollWidth==clientWidth (390/390). Admin desktop: opened demo.a in /admin/users; Downline tab contains demo.c@example.com; Ledger tab and Logins & sessions tab render. Admin user-detail dialog on mobile 390: no page-level horizontal scroll (390/390).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/activity/calendar", "issue": "Month regex \\d{4}-\\d{2} accepts semantically invalid months like 2026-00, 2026-13..2026-99 (returns 200 with empty data because regex-anchored DB query doesn't match). Low impact but should reject with 400. Consider pattern ^\\d{4}-(0[1-9]|1[0-2])$."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Admin > User detail dialog", "issues": ["Radix console warning: DialogContent missing DialogTitle (accessibility). Non-blocking but should wrap title or add VisuallyHidden DialogTitle."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_iter6_activity.py", "/app/test_reports/pytest/iter6_results.xml"],
+  "action_items": [
+    "(Minor) Tighten activity_calendar month validator to ^\\d{4}-(0[1-9]|1[0-2])$ so 2026-13 / 2026-00 return 400.",
+    "(Minor a11y) Add DialogTitle (or VisuallyHidden wrapper) to the admin user-detail Dialog to silence Radix console warning."
+  ],
+  "critical_code_review_comments": [
+    "routes_user.activity_calendar: ledger filter is {account: {$in: ['verified','promo']}} — this correctly limits to USDT-equivalent accounts, but demo_coins and sim_earnings credits are hidden from the calendar even though they're real user activity. Expected per spec (USDT ledger only). OK.",
+    "routes_admin.user_detail: sessions projection correctly whitelists {id, ip, user_agent, created_at, last_seen_at, revoked, expires_at} — refresh_token_hash is NOT returned. Password_hash and totp_secret stripped via UPROJ. Verified.",
+    "routes_admin.user_downline exposes last_login_ip/email/mobile for ALL downline (5 gens) to admins — matches spec (admin sees everything). Regular /api/team/members correctly masks these fields via member_view(). Clear privacy boundary.",
+    "routes_admin.user_downline sorts rows by Mongo insertion order; adding .sort('created_at', 1) or by generation would make UI deterministic. Minor.",
+    "verified_deposits aggregation uses $ifNull: ['$credited_amount', '$amount'] — correct for manual approvals (sets credited_amount=amount) and on-chain (sets separately).",
+    "Activity.jsx renders 'No activity on this day' when day has no entries — good UX.",
+    "chain.valid_address check inside POST /deposits properly rejects placeholder addresses — restoration of placeholders at test teardown is required."
+  ],
+  "updated_files": ["/app/backend/tests/test_iter6_activity.py (new, 8 tests)"],
+  "success_rate": {"backend": "100% (8/8)", "frontend": "100% of tested flows"},
+  "test_credentials": "Admin: takmonboost90@gmail.com / Admin@Demo2026; demo.a..f@example.com / Demo@12345",
+  "seed_data_creation": "E2E test created a TEST_act_<ts>@example.com user, 1 payment_submission (status=verified, $150), 1 wallet_accounts row (verified), 1 ledger_transactions row, sessions. All deleted in teardown. TRC20 payment_methods.address was set to TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t during the test and RESTORED to original placeholder '[Set your TRC20 receiving address]' on fixture teardown. BEP20 unchanged. No demo.* users had deposits approved. Verified post-test with mongo: no TEST_ users remain, payment_methods addresses are placeholders.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Run: REACT_APP_BACKEND_URL=https://sim-finance-hub.preview.emergentagent.com MONGO_URL=mongodb://localhost:27017 DB_NAME=test_database pytest backend/tests/test_iter6_activity.py -v. Register endpoint requires fields: email, password, confirm_password, full_name, country_code, mobile, accept_terms=true. After register, user may not be mobile_verified; set via mongo for flows that require it. /api/auth/me returns {id, email, ...} directly. Downline items may have last_login_at absent (projection=1 but field unset for never-logged-in demo users like demo.d) — don't assert strict presence."
+}
