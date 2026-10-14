@@ -162,16 +162,23 @@ export function WebinarGate() {
   const loc = useLocation();
   const nav = useNavigate();
   const { data: w } = useQuery({ queryKey: ["webinar"], queryFn: () => get("/webinar"), refetchInterval: false });
-  const open = !!w && w.enabled && w.required && !!w.video_id && !w.completed_at && !loc.pathname.startsWith("/app/webinar");
+  const [skipAt, setSkipAt] = useState(() => Number(localStorage.getItem("webinar_skip_at") || 0));
+  const skipped = Date.now() - skipAt < 3 * 3600 * 1000;
+  const open = !!w && w.enabled && !!w.video_id && !w.completed_at && !skipped && !loc.pathname.startsWith("/app/webinar");
+  const skip = () => { const t = Date.now(); localStorage.setItem("webinar_skip_at", String(t)); setSkipAt(t); };
+  const go = () => nav("/app/webinar");
   return (
-    <Dialog open={open}>
-      <DialogContent className="bg-[#0C1120] border-amber-500/30 max-w-md [&>button]:hidden" onInteractOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()} data-testid="webinar-gate">
-        <DialogHeader>
-          <span className="w-14 h-14 mx-auto rounded-2xl bg-red-500/15 text-red-300 grid place-items-center mb-2"><Icons.Video className="w-7 h-7" /></span>
-          <DialogTitle className="text-center">Watch the welcome webinar</DialogTitle>
-          <DialogDescription className="text-center">{w?.subtitle}</DialogDescription>
-        </DialogHeader>
-        <button className="btn-gold w-full" onClick={() => nav("/app/webinar")} data-testid="webinar-gate-btn"><Icons.PlayCircle className="w-4 h-4" />Start webinar ({w?.duration})</button>
+    <Dialog open={open} onOpenChange={(o) => { if (!o) skip(); }}>
+      <DialogContent className="bg-[#0C1120] border-amber-500/30 max-w-md p-0 overflow-hidden" data-testid="webinar-gate">
+        <div role="button" tabIndex={0} onClick={go} onKeyDown={(e) => e.key === "Enter" && go()} className="cursor-pointer p-6 hover:bg-amber-500/5 transition-colors" data-testid="webinar-gate-card">
+          <DialogHeader>
+            <span className="w-14 h-14 mx-auto rounded-2xl bg-red-500/15 text-red-300 grid place-items-center mb-2"><Icons.Video className="w-7 h-7" /></span>
+            <DialogTitle className="text-center">Watch the welcome webinar</DialogTitle>
+            <DialogDescription className="text-center">{w?.subtitle}</DialogDescription>
+          </DialogHeader>
+          <div className="btn-gold w-full mt-5" data-testid="webinar-gate-btn"><Icons.PlayCircle className="w-4 h-4" />Start webinar{w?.duration ? ` (${w.duration})` : ""}</div>
+          <p className="text-center text-xs text-slate-500 mt-3">Tap anywhere on this card to open the webinar</p>
+        </div>
       </DialogContent>
     </Dialog>
   );
