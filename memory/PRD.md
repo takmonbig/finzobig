@@ -45,6 +45,13 @@ MONGO_URL, DB_NAME, CORS_ORIGINS, JWT_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD, DEMO_
 - Small footer badge (public + dashboard): "Secure sessions · On-chain verified USDT payments". Declined: "trusted and verified by international financers" (unverifiable claim).
 - Auto-refresh: all queries refetch every 20 s + on focus; WebSocket notification invalidates all queries.
 
+## Iteration 4 (2026-10-14)
+- Branded offline page (public/offline.html, cached by sw.js) with logo + Retry, auto-reload when online.
+- Welcome webinar (/app/webinar): redirect after sign-up, YouTube IFrame player, min-watch unlock, required non-closable gate; admin control + stats at /admin/learn.
+- Video guides: 4 seeded boxes on dashboard overview, /app/guides and /app/guides/:slug; admin CRUD with view counts.
+- Meta Pixel management (/admin/pixels): multiple pixels, edit/replace/delete/pause, per-pixel events, test button; fbq loaded site-wide (PageView, CompleteRegistration, ViewContent, Lead, InitiateCheckout).
+- Landing "Team bonus" section: 5 rank cards with T1–T5 bars, generation explainer, rank & bonus table; note that bonus payouts are not active.
+
 ## Backlog
 - P0: real email provider (Resend) for password reset; real SMS OTP provider.
 - P1: WebSocket-driven admin live counters; downloadable ledger CSV; KYC document upload; i18n.

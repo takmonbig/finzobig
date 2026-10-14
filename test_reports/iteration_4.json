@@ -1,0 +1,30 @@
+{
+  "summary": "Iteration 4 - Validated webinar/guides/pixels/offline features end-to-end. Backend: 24/24 tests pass covering admin RBAC (webinar/guides/pixels user 403), YouTube URL parsing (watch, youtu.be, shorts, embed, bare 11-char all resolve to video_id; invalid URL -> 400), slug/icon validation (bad slug 422, bad icon 400, duplicate slug 409, delete missing 404), guide view-count increments, pixel validation (short id 422, bad event 400, duplicate 409, replace writes audit 'pixel.replace'), public pixels returns only {pixel_id, events} for active rows, offline.html + sw.js served and contain required content. Frontend: admin /admin/learn (Welcome webinar + Video guides tabs) renders with all expected testids and saves correctly; /admin/pixels add/edit/replace/delete flow works, invalid pixel ID shows inline validation 'Pixel ID must be 10-20 digits', after reload with an active pixel window.fbq is defined and pixel-script-status reads 'loaded (<id>)'. User flow: demo.a login + /app shows non-closable webinar-gate (ESC does not dismiss) and guides-grid rendered behind; /app/webinar embeds youtube-nocookie iframe with jsapi params for the configured video_id and webinar-complete-btn is correctly disabled while timer unmet; /app/guides lists 4 cards; guide page shows steps and video-coming-soon when no video_url. Cleanup verified: webinar video_url restored to '', min_watch_seconds back to 60, all test pixels/guides removed, demo.a has no webinar_started_at/completed_at set.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/backend/tests/test_iter4_learn.py", "/app/test_reports/pytest/iter4_results.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "routes_learn.get_webinar: returns webinar_config spread with completed_at from user; works but exposes 'key':'main' in response payload which is harmless but leaks internal naming. Minor.",
+    "routes_learn.start/complete_webinar: idempotency via filter {'webinar_started_at': {'$exists': False}} is correct but silently returns ok:true even when no update occurs - acceptable but could return the stored timestamp for debugging.",
+    "routes_learn.video_id: regex covers watch/embed/shorts/live/v + youtu.be + youtube-nocookie - comprehensive. Does not accept youtube.com/live/<id> query variations; acceptable.",
+    "routes_learn pixel validation: PixelIn.pixel_id uses regex ^\\d{10,20}$ (Pydantic -> 422) which matches frontend inline check (10-20 digits). Consistent.",
+    "AdminLearn pixels: dialog save uses regex /^\\d{10,20}$/.test on client; mirrors backend. Good UX.",
+    "WebinarGate in AppShell: uses non-closable Dialog (onInteractOutside/onEscapeKeyDown preventDefault) and no close button - matches spec. Confirmed with Playwright ESC test.",
+    "Guides index unique on slug + guide creation returns inserted doc + audit entry. Good.",
+    "No pagination on /api/admin/guides/pixels (limits 100/50) - fine for current scale.",
+    "GET /api/public/pixels is unauthenticated and returns pixel IDs - this is expected because fbq needs them client-side; no sensitive data exposed."
+  ],
+  "updated_files": ["/app/backend/tests/test_iter4_learn.py (new)"],
+  "success_rate": {"backend": "100% (24/24)", "frontend": "100% of tested flows (gate, webinar page, guides, admin learn, admin pixels)"},
+  "test_credentials": "Admin: takmonboost90@gmail.com / Admin@Demo2026; demo.a..f@example.com / Demo@12345",
+  "seed_data_creation": "During tests, admin set webinar_config.video_url=https://youtu.be/dQw4w9WgXcQ with min_watch_seconds=5 and required=true, then restored to video_url='' and min_watch_seconds=60. Transient TEST pixels 999888777666555/123456789012345/123456789012346 and guide slug 'test-guide-finzo' were created and deleted. demo.a had no webinar fields set at end (verified via Mongo).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend test file: /app/backend/tests/test_iter4_learn.py (24 tests). Run: REACT_APP_BACKEND_URL=https://sim-finance-hub.preview.emergentagent.com pytest backend/tests/test_iter4_learn.py -v -n 0. Previous iterations' tests: test_iter3_chain.py (16), backend_test.py. The webinar YouTube embed uses youtube-nocookie.com with enablejsapi=1 which is correct; autoplay is blocked in headless so webinar-complete-btn stays disabled - this is expected behavior and validates the min_watch_seconds gating. If retesting the full 'watch -> complete' flow, use the /api/webinar/complete endpoint directly as the user to simulate end-of-video.",
+  "rca of the issue": "N/A - no bugs found. All iteration 4 features (webinar, guides, pixels, offline) function as specified."
+}

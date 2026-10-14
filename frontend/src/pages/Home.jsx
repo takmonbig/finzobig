@@ -3,6 +3,7 @@ import { api } from "@/lib/api";
 import { useSite, Loader } from "@/components/common";
 import { Hero, Benefits, HowItWorks, Trading } from "@/components/home/Sections";
 import { PlansSection, TeamDiagram, RewardsSection, FAQ } from "@/components/home/Interactive";
+import { TeamBonus } from "@/components/home/TeamBonus";
 
 export default function Home() {
   const { data: site, isLoading } = useSite();
@@ -19,6 +20,7 @@ export default function Home() {
       <HowItWorks steps={c.how_it_works} />
       <Trading items={c.trading} risks={c.risk_points} />
       <TeamDiagram ranks={ranks.data?.ranks || []} />
+      <TeamBonus ranks={ranks.data?.ranks || []} commission={ranks.data?.commission_bp || {}} />
       <RewardsSection rewards={rewards.data || []} />
       <FAQ items={c.faqs} />
     </div>
