@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#070A12" />
+  <title>Finzo.cc — You are offline</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; }
+    body { min-height: 100vh; display: grid; place-items: center; background: radial-gradient(1200px 600px at 20% 0%, #1a1440 0%, #070A12 55%); color: #e2e8f0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; padding: 24px; }
+    .card { max-width: 380px; width: 100%; text-align: center; padding: 36px 28px; border-radius: 24px; background: rgba(15, 20, 36, .7); border: 1px solid rgba(245, 158, 11, .25); backdrop-filter: blur(16px); box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+    img { height: 56px; width: auto; margin-bottom: 24px; }
+    .dot { width: 64px; height: 64px; margin: 0 auto 20px; border-radius: 50%; display: grid; place-items: center; background: rgba(245, 158, 11, .1); border: 1px solid rgba(245, 158, 11, .3); animation: pulse 2s ease-in-out infinite; }
+    h1 { font-size: 22px; color: #fff; margin-bottom: 8px; }
+    p { font-size: 14px; color: #94a3b8; line-height: 1.6; margin-bottom: 24px; }
+    button { width: 100%; padding: 14px; border: 0; border-radius: 999px; font-weight: 700; font-size: 15px; color: #0b0f1a; background: linear-gradient(135deg, #fcd34d, #f59e0b); cursor: pointer; transition: transform .15s; }
+    button:active { transform: scale(.97); }
+    small { display: block; margin-top: 14px; font-size: 12px; color: #64748b; }
+    @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,.35); } 50% { box-shadow: 0 0 0 14px rgba(245,158,11,0); } }
+  </style>
+</head>
+<body>
+  <div class="card" data-testid="offline-page">
+    <img src="/img/logo.png" alt="Finzo.cc" />
+    <div class="dot"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01"/><path d="M8.5 16.43a5 5 0 0 1 7 0"/><path d="M2 8.82a15 15 0 0 1 4.17-2.65"/><path d="M10.66 5c4.01-.36 8.14.9 11.34 3.76"/><path d="M16.85 11.25a10 10 0 0 1 2.22 1.68"/><path d="M5 13a10 10 0 0 1 5.24-2.76"/><path d="m2 2 20 20"/></svg></div>
+    <h1>You're offline</h1>
+    <p>Check your internet connection. Your account and balances are safe — we'll reconnect as soon as you're back online.</p>
+    <button onclick="location.reload()" data-testid="offline-retry-btn">Retry</button>
+    <small>This page reloads automatically when your connection returns.</small>
+  </div>
+  <script>window.addEventListener("online", function () { location.reload(); });</script>
+</body>
+</html>

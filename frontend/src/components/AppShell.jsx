@@ -12,6 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 import { LinkText, ExternalPreview, RankBadge } from "@/components/common";
 import { Logo } from "@/components/PublicLayout";
 import { InstallButton, InstallPopup, TrustBadge } from "@/components/Pwa";
+import { WebinarGate } from "@/pages/app/Learn";
 
 function useRealtime(enabled) {
   const qc = useQueryClient();
@@ -158,6 +159,7 @@ export default function AppShell({ items, area }) {
         </main>
         <footer className="px-4 py-4 flex justify-center border-t border-slate-800/60"><TrustBadge /></footer>
         {area === "user" && <InstallPopup />}
+        {area === "user" && <WebinarGate />}
       </div>
       <PopupAnnouncements />
     </div>

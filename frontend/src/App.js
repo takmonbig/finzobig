@@ -1,8 +1,10 @@
-import { lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { lazy, Suspense, useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { LayoutDashboard, Wallet, Layers, ArrowDownToLine, ArrowUpFromLine, Network, Trophy, Bell, Megaphone, LifeBuoy, UserCog, Users, CreditCard, Gift,
-  FileText, Settings, ScrollText, ShieldCheck, Landmark, MessageSquareWarning } from "lucide-react";
+  FileText, Settings, ScrollText, ShieldCheck, Landmark, MessageSquareWarning, PlayCircle, Video, Target } from "lucide-react";
+import { api } from "@/lib/api";
+import { initPixels, track } from "@/lib/pixel";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { Loader } from "@/components/common";
@@ -19,6 +21,16 @@ const T = lazy(() => import("@/pages/app/TeamPages"));
 const A = lazy(() => import("@/pages/admin/AdminCore"));
 const AF = lazy(() => import("@/pages/admin/AdminFinance"));
 const AC = lazy(() => import("@/pages/admin/AdminContent"));
+const L = lazy(() => import("@/pages/app/Learn"));
+const AL = lazy(() => import("@/pages/admin/AdminLearn"));
+
+function PixelTracker() {
+  const loc = useLocation();
+  const { data } = useQuery({ queryKey: ["pixels"], queryFn: () => api.get("/public/pixels").then((r) => r.data), refetchInterval: false, staleTime: Infinity });
+  useEffect(() => { if (data) initPixels(data); }, [data]);
+  useEffect(() => { if (data?.length) track("PageView"); }, [loc.pathname, data]);
+  return null;
+}
 
 const qc = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: true, refetchInterval: 20000, refetchIntervalInBackground: false } } });
 
@@ -28,7 +40,8 @@ const USER_NAV = [
   { to: "/app/withdraw", label: "Withdrawal", icon: ArrowUpFromLine }, { to: "/app/team", label: "My team", icon: Network },
   { to: "/app/rewards", label: "Rewards", icon: Trophy }, { to: "/app/notifications", label: "Notifications", icon: Bell },
   { to: "/app/announcements", label: "Team announcements", icon: Megaphone }, { to: "/app/support", label: "Support", icon: LifeBuoy },
-  { to: "/app/profile", label: "Profile & security", icon: UserCog },
+  { to: "/app/profile", label: "Profile & security", icon: UserCog }, { to: "/app/webinar", label: "Welcome webinar", icon: Video },
+  { to: "/app/guides", label: "Video guides", icon: PlayCircle },
 ];
 const ADMIN_NAV = [
   { to: "/admin", label: "Overview", icon: LayoutDashboard, end: true }, { to: "/admin/users", label: "Users", icon: Users },
@@ -38,6 +51,7 @@ const ADMIN_NAV = [
   { to: "/admin/campaigns", label: "Notifications", icon: Bell }, { to: "/admin/team", label: "Team & moderation", icon: MessageSquareWarning },
   { to: "/admin/support", label: "Support tickets", icon: LifeBuoy }, { to: "/admin/cms", label: "Website CMS", icon: FileText },
   { to: "/admin/settings", label: "System settings", icon: Settings }, { to: "/admin/logs", label: "Audit & security", icon: ScrollText },
+  { to: "/admin/learn", label: "Webinar & guides", icon: Video }, { to: "/admin/pixels", label: "Meta Pixels", icon: Target },
 ];
 
 function Guard({ role, children }) {
@@ -75,6 +89,9 @@ function AppRoutes() {
         <Route path="notifications" element={S(<U page="notifications" />)} />
         <Route path="support" element={S(<U page="support" />)} />
         <Route path="profile" element={S(<U page="profile" />)} />
+        <Route path="webinar" element={S(<L page="webinar" />)} />
+        <Route path="guides" element={S(<L page="guides" />)} />
+        <Route path="guides/:slug" element={S(<L page="guide" />)} />
       </Route>
       <Route path="/admin" element={<Guard role="admin"><AppShell items={ADMIN_NAV} area="admin" /></Guard>}>
         <Route index element={S(<A page="overview" />)} />
@@ -91,6 +108,8 @@ function AppRoutes() {
         <Route path="support" element={S(<AC page="support" />)} />
         <Route path="cms" element={S(<AC page="cms" />)} />
         <Route path="settings" element={S(<AC page="settings" />)} />
+        <Route path="learn" element={S(<AL page="learn" />)} />
+        <Route path="pixels" element={S(<AL page="pixels" />)} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
@@ -101,7 +120,7 @@ export default function App() {
   return (
     <QueryClientProvider client={qc}>
       <AuthProvider>
-        <BrowserRouter><AppRoutes /></BrowserRouter>
+        <BrowserRouter><PixelTracker /><AppRoutes /></BrowserRouter>
         <Toaster theme="dark" richColors position="top-right" />
       </AuthProvider>
     </QueryClientProvider>

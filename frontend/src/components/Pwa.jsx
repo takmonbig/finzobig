@@ -77,7 +77,7 @@ export function InstallPopup() {
   const [open, setOpen] = useState(false);
   useEffect(() => {
     if (p.installed) return undefined;
-    const check = () => { if (Date.now() - Number(localStorage.getItem(KEY) || 0) >= GAP) setOpen(true); };
+    const check = () => { if (Date.now() - Number(localStorage.getItem(KEY) || 0) >= GAP && !document.querySelector('[data-testid="webinar-gate"]') && !location.pathname.startsWith("/app/webinar")) setOpen(true); };
     const t = setTimeout(check, 2500);
     const i = setInterval(check, 10 * 60 * 1000);
     return () => { clearTimeout(t); clearInterval(i); };

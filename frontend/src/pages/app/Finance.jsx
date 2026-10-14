@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api, coins, errMsg, fdate, newKey } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { track } from "@/lib/pixel";
 import { Glass, PageHeader, Loader, Empty, ErrorBox, StatusBadge, Field, Pager, Confirm, ImageUpload, TelegramButton, Stat } from "@/components/common";
 
 const get = (url, params) => api.get(url, { params }).then((r) => r.data);
@@ -81,7 +82,7 @@ function DepositForm({ m, open, onDone }) {
   const [err, setErr] = useState(null);
   const mut = useMutation({
     mutationFn: () => api.post("/deposits", { method_id: m.id, amount: Number(amount) }),
-    onSuccess: () => { setAmount(""); setErr(null); onDone(); },
+    onSuccess: () => { track("InitiateCheckout", { currency: "USD", value: Number(amount) }); setAmount(""); setErr(null); onDone(); },
     onError: (e) => setErr(errMsg(e)),
   });
   if (open) return <PayStep d={open} onDone={onDone} />;

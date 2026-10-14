@@ -14,6 +14,7 @@ import { Progress } from "@/components/ui/progress";
 import { api, coins, errMsg, fdate, newKey } from "@/lib/api";
 import { enablePush, disablePush, permission } from "@/lib/push";
 import { useAuth } from "@/context/AuthContext";
+import { GuidesGrid } from "@/pages/app/Learn";
 import { Glass, PageHeader, Stat, Loader, Empty, ErrorBox, StatusBadge, DemoTag, Field, Pager, Confirm, LinkText, TelegramButton, RankBadge, PasswordInput } from "@/components/common";
 
 export const TT = { contentStyle: { background: "#0C1120", border: "1px solid #334155", borderRadius: 12, fontSize: 12 } };
@@ -68,6 +69,7 @@ function Overview() {
           </Link>
         ))}
       </div>
+      <GuidesGrid />
       <div className="grid lg:grid-cols-2 gap-5">
         <ChartCard title="Balance history" testid="chart-balance"><ResponsiveContainer><AreaChart data={d.charts.balance}>
           <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" /><XAxis dataKey="date" stroke="#64748b" fontSize={11} /><YAxis stroke="#64748b" fontSize={11} /><Tooltip {...TT} /><Legend />

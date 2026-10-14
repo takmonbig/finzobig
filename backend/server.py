@@ -13,6 +13,7 @@ from core import db, client, iso, uid, hash_password, verify_password, ensure_wa
 from routes_auth import router as auth_router, new_referral_code
 from routes_user import router as user_router
 from routes_admin import router as admin_router, plan_doc, PlanIn
+from routes_learn import router as learn_router, seed_learn
 from jobs import scheduler_loop
 from seed_data import PLANS, PLAN_NAMES, REWARDS, reward_extra, METHODS, CONTENT
 
@@ -21,6 +22,7 @@ app = FastAPI(title="Finzo.cc API")
 app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(admin_router)
+app.include_router(learn_router)
 app.add_middleware(CORSMiddleware, allow_credentials=True, allow_origins=os.environ["CORS_ORIGINS"].split(","), allow_methods=["*"], allow_headers=["*"])
 
 
@@ -128,6 +130,7 @@ async def seed():
 async def startup():
     await create_indexes()
     await seed()
+    await seed_learn()
     asyncio.create_task(scheduler_loop())
 
 

@@ -10,6 +10,7 @@ import { api, errMsg } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { Field, ErrorBox, PasswordInput, TelegramButton, useSite } from "@/components/common";
 import { COUNTRIES } from "@/lib/countries";
+import { track } from "@/lib/pixel";
 import { Logo } from "@/components/PublicLayout";
 
 const Shell = ({ title, subtitle, children }) => (
@@ -103,7 +104,8 @@ export function Register() {
       const { data } = await api.post("/auth/register", v);
       setUser(data);
       toast.success("Account created. Welcome coins have been added.");
-      nav("/app");
+      track("CompleteRegistration");
+      nav("/app/webinar");
     } catch (e) { setErr(errMsg(e)); }
   };
   return (

@@ -1,7 +1,10 @@
-self.addEventListener("install", () => self.skipWaiting());
+const CACHE = "finzo-offline-v1";
+self.addEventListener("install", (e) => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then((c) => c.addAll(["/offline.html", "/img/logo.png", "/img/favicon-192.png"]))); });
 self.addEventListener("activate", (e) => e.waitUntil(self.clients.claim()));
 self.addEventListener("fetch", (e) => {
-  if (e.request.mode === "navigate") e.respondWith(fetch(e.request).catch(() => new Response("<h1 style='font-family:sans-serif;color:#fff;background:#070A12;padding:40px'>You are offline</h1>", { headers: { "Content-Type": "text/html" } })));
+  const u = new URL(e.request.url);
+  if (e.request.mode === "navigate") e.respondWith(fetch(e.request).catch(() => caches.match("/offline.html")));
+  else if (u.origin === self.location.origin && ["/img/logo.png", "/img/favicon-192.png"].includes(u.pathname)) e.respondWith(fetch(e.request).catch(() => caches.match(u.pathname)));
 });
 
 function safe(url) {
