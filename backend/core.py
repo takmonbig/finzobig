@@ -208,7 +208,7 @@ async def post_ledger(user_id, account, amount, tx_type, memo="", ref=None, idem
              "balance_after": w["balance"], "created_at": iso()}
     if idem_key:
         entry["idem_key"] = idem_key
-    await db.ledger_transactions.insert_one(entry)
+    await db.ledger_transactions.insert_one(dict(entry))
     return entry
 
 

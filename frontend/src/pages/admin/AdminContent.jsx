@@ -116,8 +116,10 @@ function Composer({ onDone }) {
     audience: { ...f.audience, user_ids: typeof f.audience.user_ids === "string" ? f.audience.user_ids.split(/[\s,]+/).filter(Boolean) : f.audience.user_ids } });
   const preview = async () => { try { setPrev((await api.post("/admin/campaigns/audience-preview", body().audience)).data); } catch (e) { setErr(errMsg(e)); } };
   const submit = async () => {
+    const a = body().audience;
+    if ((a.type === "selected" && !a.user_ids?.length) || (a.type === "group" && !a.group)) return setErr("Enter the user IDs or group for this audience");
     setBusy(true); setErr(null);
-    try { const r = await api.post("/admin/campaigns", body()); toast.success(r.data.status === "sent" ? "Campaign sent" : "Campaign scheduled"); setF(blank); setImg(null); onDone(); } catch (e) { setErr(errMsg(e)); }
+    try { const r = await api.post("/admin/campaigns", body()); toast.success(r.data.status === "sent" ? `Campaign sent to ${r.data.stats?.eligible ?? 0} recipient(s)` : "Campaign scheduled"); setF(blank); setImg(null); onDone(); } catch (e) { setErr(errMsg(e)); }
     setBusy(false);
   };
   return (
@@ -267,7 +269,7 @@ function Settings() {
           {inp("Default support message", v.telegram.default_message, (x) => sub("telegram", "default_message", x), "set-tg-message")}</Glass>
         <Glass className="space-y-3"><h3 className="font-semibold text-white flex items-center gap-2">Coin system <DemoTag text="Demo values" /></h3>
           <div className="grid grid-cols-3 gap-3">{inp("Display name", v.coin.name, (x) => sub("coin", "name", x), "set-coin-name")}{inp("Symbol", v.coin.symbol, (x) => sub("coin", "symbol", x), "set-coin-symbol")}{inp("Decimals", v.coin.decimals, (x) => sub("coin", "decimals", x), "set-coin-decimals", "number")}</div>
-          <div className="grid grid-cols-2 gap-3">{Object.keys(v.coin.rates).map((c) => inp(`1 ${c} = coins`, v.coin.rates[c], (x) => sub("coin", "rates", { ...v.coin.rates, [c]: x }), `set-rate-${c}`, "number"))}</div>
+          <div className="grid grid-cols-2 gap-3">{Object.keys(v.coin.rates).map((c) => <div key={c}>{inp(`1 ${c} = coins`, v.coin.rates[c], (x) => sub("coin", "rates", { ...v.coin.rates, [c]: x }), `set-rate-${c}`, "number")}</div>)}</div>
           <div className="text-xs text-slate-400"><p className="font-semibold text-slate-300 mb-1">Conversion history</p>{v.coin.history?.length ? v.coin.history.map((h, i) => <p key={i}>{fdate(h.at)} · {JSON.stringify(h.rates)} → {JSON.stringify(h.changed_to)} by {h.by}</p>) : "No changes yet"}</div></Glass>
         <Glass className="space-y-3"><h3 className="font-semibold text-white">Feature flags & limits</h3>
           {Object.keys(v.features).map((k) => <label key={k} className="flex items-center justify-between text-sm capitalize">{k.replace("_", " ")}<Switch checked={v.features[k]} onCheckedChange={(x) => sub("features", k, x)} data-testid={`set-feature-${k}`} /></label>)}

@@ -499,6 +499,8 @@ async def create_campaign(b: CampaignIn, request: Request, admin=Depends(require
         raise HTTPException(400, "Invalid channel")
     if b.audience.get("type") not in ("all", "selected", "group", "push_enabled", "push_disabled", "active_recent", "inactive"):
         raise HTTPException(400, "Invalid audience")
+    if (b.audience["type"] == "selected" and not b.audience.get("user_ids")) or (b.audience["type"] == "group" and not b.audience.get("group")):
+        raise HTTPException(400, "Audience requires user IDs or a group name")
     image = (await verify_asset(b.image_public_id, "admin/notifications/", 8 * 1024 * 1024))["secure_url"] if b.image_public_id else None
     sched = b.scheduled_at if b.scheduled_at and b.scheduled_at > iso() else None
     d = {"id": uid(), "title": strip_html(b.title), "message": strip_html(b.message), "image_url": image, "link": safe_url(b.link) if b.link else None,
