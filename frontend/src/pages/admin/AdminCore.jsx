@@ -59,7 +59,7 @@ function UserDetail({ id, onClose }) {
           <div className="grid sm:grid-cols-2 gap-3 text-sm">
             <p>Email: <span className="text-white">{u.email}</span></p><p>Mobile: {u.country_code} {u.mobile} {u.mobile_verified ? "✓" : "(unverified)"}</p>
             <p>Referral code: <span className="font-num">{u.referral_code}</span></p><p>Referrer: {data.referrer ? `${data.referrer.full_name} (${data.referrer.email})` : "—"}</p>
-            <p>Direct / team: {data.direct} / {data.team}</p><p>Team volume: ₹{coins(data.team_volume, 0)}</p><p>Joined: {fdate(u.created_at)}</p><p>Active sessions: {data.active_sessions}</p>
+            <p>Direct / team: {data.direct} / {data.team}</p><p>Team volume: {coins(data.team_volume, 0)}</p><p>Joined: {fdate(u.created_at)}</p><p>Active sessions: {data.active_sessions}</p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">{Object.entries(data.wallets).map(([k, w]) => <div key={k} className="rounded-xl bg-slate-950/60 border border-slate-800 p-2"><p className="text-[10px] text-slate-500">{k}</p><p className="font-num text-sm">{coins(w.balance)}</p></div>)}</div>
           <div className="grid sm:grid-cols-3 gap-3 items-end">

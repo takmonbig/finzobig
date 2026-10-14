@@ -8,10 +8,9 @@ const NAV = [["Benefits", "/#benefits"], ["Plans", "/#plans"], ["How it works", 
 const FOOT = [["About Us", "about"], ["Contact", "contact"], ["Support", "support"], ["Privacy Policy", "privacy"], ["Terms and Conditions", "terms"], ["Risk Disclosure", "risk"],
   ["Refund Policy", "refund"], ["Complaint Resolution", "complaints"], ["Cookie Preferences", "cookies"], ["Company Information", "company"]];
 
-export const Logo = ({ name }) => (
-  <Link to="/" className="flex items-center gap-2.5" data-testid="brand-logo">
-    <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 grid place-items-center text-slate-950 font-heading font-extrabold shadow-[0_0_18px_rgba(245,158,11,.4)]">{(name || "A")[0]}</span>
-    <span className="font-heading font-bold text-lg text-white tracking-wide">{name}</span>
+export const Logo = ({ name = "Finzo.cc" }) => (
+  <Link to="/" className="flex items-center" data-testid="brand-logo">
+    <img src="/img/logo.png" alt={name} className="h-12 sm:h-14 w-auto object-contain" />
   </Link>
 );
 
@@ -77,7 +76,7 @@ export default function PublicLayout() {
   return (
     <div className="min-h-screen mesh-bg grain text-slate-200" key={loc.pathname === "/" ? "home" : "page"}>
       {banner && <div className="bg-amber-500/10 border-b border-amber-500/30 text-amber-200 text-xs sm:text-sm text-center py-2 px-4" data-testid="site-banner">{banner.text}</div>}
-      <TopNav name={data?.settings?.site_name || "AurumNet"} />
+      <TopNav name={data?.settings?.site_name || "Finzo.cc"} />
       <main className="relative z-10"><Outlet /></main>
       <Footer site={data} />
     </div>

@@ -23,7 +23,7 @@ function MyProgress({ rewardId }) {
   return (
     <Glass data-testid="reward-progress">
       <p className="text-sm text-slate-400">Your simulated team volume</p>
-      <p className="font-num text-2xl text-white">₹{coins(q.data.team_volume, 0)}</p>
+      <p className="font-num text-2xl text-white">{coins(q.data.team_volume, 0)}</p>
       <Progress value={r.progress_pct} className="h-2 mt-3" />
       <p className="text-xs text-slate-500 mt-2">{r.progress_pct}% of milestone</p>
       <div className="mt-3">Claim status: {r.claim ? <StatusBadge status={r.claim.status} testid="reward-claim-status" /> : <span className="text-sm text-slate-400">No claim</span>}</div>
@@ -67,7 +67,7 @@ export default function RewardDetail() {
             <h1 className="font-heading text-3xl sm:text-4xl text-white" data-testid="reward-title">{r.title}</h1>
             <p className="text-slate-400 mt-3 text-sm">{r.description}</p>
             <div className="grid grid-cols-2 gap-3 mt-5">
-              <div className="rounded-xl bg-slate-950/60 border border-slate-800 p-3"><p className="text-[11px] text-slate-500">Illustrative milestone</p><p className="font-num text-amber-300">₹{coins(r.milestone, 0)}</p></div>
+              <div className="rounded-xl bg-slate-950/60 border border-slate-800 p-3"><p className="text-[11px] text-slate-500">Illustrative milestone</p><p className="font-num text-amber-300">{coins(r.milestone, 0)}</p></div>
               <div className="rounded-xl bg-slate-950/60 border border-slate-800 p-3"><p className="text-[11px] text-slate-500">Availability</p><p className="font-num text-white" data-testid="reward-inventory">{r.inventory > 0 ? `${r.inventory} concept units` : "Unavailable"}</p></div>
               {r.duration && <div className="rounded-xl bg-slate-950/60 border border-slate-800 p-3 col-span-2"><p className="text-[11px] text-slate-500">Proposed duration</p><p className="text-white">{r.duration}</p></div>}
             </div>

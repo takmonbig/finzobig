@@ -73,7 +73,7 @@ function Rewards() {
       <Tabs defaultValue="rewards"><TabsList className="bg-slate-900 mb-4"><TabsTrigger value="rewards" data-testid="rw-tab-rewards">Rewards</TabsTrigger><TabsTrigger value="claims" data-testid="rw-tab-claims">Claims ({claims.data?.length || 0})</TabsTrigger></TabsList>
         <TabsContent value="rewards">{isLoading ? <Loader /> : <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">{data.map((r) => (
           <Glass key={r.id} className="!p-0 overflow-hidden" data-testid={`admin-reward-${r.slug}`}><img src={r.image_url} alt={r.title} className="w-full h-36 object-cover" />
-            <div className="p-4"><p className="text-white font-semibold">{r.title}</p><p className="text-xs text-slate-500">₹{coins(r.milestone, 0)} · inventory {r.inventory} {r.expires_at && `· expires ${r.expires_at.slice(0, 10)}`}</p>
+            <div className="p-4"><p className="text-white font-semibold">{r.title}</p><p className="text-xs text-slate-500">{coins(r.milestone, 0)} · inventory {r.inventory} {r.expires_at && `· expires ${r.expires_at.slice(0, 10)}`}</p>
               <div className="flex items-center justify-between mt-3"><StatusBadge status={r.active ? "active" : "disabled"} /><button className="btn-ghost !py-1 !px-3 text-xs" onClick={() => open(r)} data-testid={`edit-reward-${r.slug}`}><Pencil className="w-3 h-3" />Edit</button></div></div></Glass>
         ))}</div>}</TabsContent>
         <TabsContent value="claims"><Glass>{claims.data?.length ? <div className="overflow-x-auto"><table className="tbl" data-testid="claims-table"><thead><tr><th>Date</th><th>User</th><th>Reward</th><th>Status</th><th>Actions</th></tr></thead>
@@ -85,7 +85,7 @@ function Rewards() {
         <DialogContent className="bg-[#0C1120] border-amber-500/20 max-w-2xl max-h-[88vh] overflow-y-auto" data-testid="reward-dialog"><DialogHeader><DialogTitle>{edit?.id ? "Edit" : "Add"} reward</DialogTitle></DialogHeader>
           {edit && <div className="grid sm:grid-cols-2 gap-3">
             {[["title", "Title"], ["slug", "Slug (url)"], ["category", "Category"], ["duration", "Duration (optional)"]].map(([k, l]) => <Field key={k} label={l}><Input className="inp" value={edit[k] || ""} onChange={(e) => setEdit({ ...edit, [k]: e.target.value })} data-testid={`reward-${k}-input`} /></Field>)}
-            <Field label="Milestone (₹ simulated volume)"><Input className="inp font-num" type="number" value={edit.milestone} onChange={(e) => setEdit({ ...edit, milestone: e.target.value })} data-testid="reward-milestone-input" /></Field>
+            <Field label="Milestone (simulated team volume)"><Input className="inp font-num" type="number" value={edit.milestone} onChange={(e) => setEdit({ ...edit, milestone: e.target.value })} data-testid="reward-milestone-input" /></Field>
             <Field label="Inventory"><Input className="inp font-num" type="number" value={edit.inventory} onChange={(e) => setEdit({ ...edit, inventory: e.target.value })} data-testid="reward-inventory-input" /></Field>
             <Field label="Expiry date"><Input className="inp" type="date" value={(edit.expires_at || "").slice(0, 10)} onChange={(e) => setEdit({ ...edit, expires_at: e.target.value ? new Date(e.target.value).toISOString() : "" })} data-testid="reward-expiry-input" /></Field>
             <label className="flex items-center gap-2 text-sm">Active <Switch checked={edit.active} onCheckedChange={(v) => setEdit({ ...edit, active: v })} /></label>

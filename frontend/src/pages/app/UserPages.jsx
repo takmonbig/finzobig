@@ -14,7 +14,7 @@ import { Progress } from "@/components/ui/progress";
 import { api, coins, errMsg, fdate, newKey } from "@/lib/api";
 import { enablePush, disablePush, permission } from "@/lib/push";
 import { useAuth } from "@/context/AuthContext";
-import { Glass, PageHeader, Stat, Loader, Empty, ErrorBox, StatusBadge, DemoTag, Field, Pager, Confirm, LinkText, TelegramButton, RankBadge } from "@/components/common";
+import { Glass, PageHeader, Stat, Loader, Empty, ErrorBox, StatusBadge, DemoTag, Field, Pager, Confirm, LinkText, TelegramButton, RankBadge, PasswordInput } from "@/components/common";
 
 export const TT = { contentStyle: { background: "#0C1120", border: "1px solid #334155", borderRadius: 12, fontSize: 12 } };
 const COLORS = ["#F59E0B", "#3B82F6", "#8B5CF6", "#10B981", "#EC4899", "#06B6D4", "#EF4444"];
@@ -157,14 +157,14 @@ function Rewards() {
   return (
     <div data-testid="rewards-page">
       <PageHeader title="Rewards & achievements" subtitle="Proposed reward concepts — not guaranteed prizes. Progress uses simulated five-generation team volume." />
-      <Glass className="mb-5"><p className="text-sm text-slate-400">Your simulated team volume</p><p className="font-num text-3xl text-white" data-testid="team-volume">₹{coins(data.team_volume, 0)}</p></Glass>
+      <Glass className="mb-5"><p className="text-sm text-slate-400">Your simulated team volume</p><p className="font-num text-3xl text-white" data-testid="team-volume">{coins(data.team_volume, 0)}</p></Glass>
       <div className="grid md:grid-cols-2 gap-5">
         {data.rewards.map((r) => (
           <Glass key={r.id} className="flex gap-4" data-testid={`my-reward-${r.slug}`}>
             <img src={r.image_url} alt={r.title} className="w-28 h-28 rounded-xl object-cover shrink-0" />
             <div className="flex-1 min-w-0">
               <Link to={`/rewards/${r.slug}`} className="font-heading text-lg text-white hover:text-amber-300">{r.title}</Link>
-              <p className="text-xs text-slate-500">Milestone ₹{coins(r.milestone, 0)}</p>
+              <p className="text-xs text-slate-500">Milestone {coins(r.milestone, 0)}</p>
               <Progress value={r.progress_pct} className="h-2 my-3" /><p className="text-xs text-slate-400">{r.progress_pct}% complete</p>
               <div className="mt-3 flex items-center gap-2">
                 {r.claim ? <StatusBadge status={r.claim.status} testid={`claim-status-${r.slug}`} /> : <button className="btn-gold !py-1.5 !text-sm" disabled={!r.eligible || claim.isPending} onClick={() => claim.mutate(r.id)} data-testid={`claim-btn-${r.slug}`}>{r.eligible ? "Submit claim" : "Not yet eligible"}</button>}
@@ -350,7 +350,6 @@ function Profile() {
           <p className="text-sm text-slate-400">Referral code: <span className="font-num text-amber-300" data-testid="profile-referral-code">{user.referral_code}</span></p>
           <button className="btn-gold" disabled={busy} onClick={() => save({ full_name: name }, "Profile saved")} data-testid="profile-save-btn">{busy && <Loader2 className="w-4 h-4 animate-spin" />}Save profile</button>
           <div className="border-t border-slate-800 pt-4 space-y-3"><h4 className="text-sm font-semibold text-white">Verification</h4>
-            <MobileVerify user={user} refresh={refresh} />
             <div className="flex items-center gap-3 text-sm">Account verification: <StatusBadge status={user.kyc_status} testid="kyc-status" />
               {["not_submitted", "rejected"].includes(user.kyc_status) && <button className="btn-ghost !py-1 text-xs" onClick={async () => { try { await api.post("/profile/kyc"); await refresh(); toast.success("Submitted for review"); } catch (e) { toast.error(errMsg(e)); } }} data-testid="kyc-submit-btn">Submit for review</button>}</div>
           </div>
@@ -368,8 +367,8 @@ function Profile() {
         <TwoFA user={user} refresh={refresh} />
         <Glass className="space-y-3">
           <h3 className="font-semibold text-white">Change password</h3>
-          <Input className="inp" type="password" placeholder="Current password" value={pw.current_password} onChange={(e) => setPw({ ...pw, current_password: e.target.value })} data-testid="current-password-input" />
-          <Input className="inp" type="password" placeholder="New password" value={pw.new_password} onChange={(e) => setPw({ ...pw, new_password: e.target.value })} data-testid="new-password-input" />
+          <PasswordInput placeholder="Current password" value={pw.current_password} onChange={(e) => setPw({ ...pw, current_password: e.target.value })} testid="current-password-input" />
+          <PasswordInput placeholder="New password" value={pw.new_password} onChange={(e) => setPw({ ...pw, new_password: e.target.value })} testid="new-password-input" />
           <button className="btn-gold" onClick={async () => { try { await api.post("/auth/change-password", pw); toast.success("Password changed; other sessions signed out"); setPw({ current_password: "", new_password: "" }); } catch (e) { toast.error(errMsg(e)); } }} data-testid="change-password-btn">Update password</button>
         </Glass>
         <div className="lg:col-span-2"><Sessions /></div>

@@ -123,7 +123,7 @@ export default function AppShell({ items, area }) {
   return (
     <div className="min-h-screen mesh-bg flex text-slate-200">
       <aside className={`hidden lg:flex flex-col sticky top-0 h-screen bg-[#070A12]/95 backdrop-blur-2xl border-r border-slate-800/80 p-4 transition-[width] duration-300 ${collapsed ? "w-[76px]" : "w-64"}`} data-testid="sidebar">
-        <div className="flex items-center justify-between mb-8">{!collapsed && <Logo name="AurumNet" />}
+        <div className="flex items-center justify-between mb-8">{!collapsed && <Logo />}
           <button onClick={() => setCollapsed(!collapsed)} className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400" data-testid="sidebar-collapse-btn" aria-label="Collapse sidebar"><ChevronsLeft className={`w-4 h-4 transition-transform ${collapsed ? "rotate-180" : ""}`} /></button>
         </div>
         <div className="flex-1 overflow-y-auto pr-1"><Nav items={items} collapsed={collapsed} /></div>
@@ -131,7 +131,7 @@ export default function AppShell({ items, area }) {
       </aside>
       <Sheet open={mobile} onOpenChange={setMobile}>
         <SheetContent side="left" className="bg-[#070A12] border-slate-800 w-72 p-4 overflow-y-auto" data-testid="mobile-sidebar">
-          <div className="mb-6"><Logo name="AurumNet" /></div>
+          <div className="mb-6"><Logo /></div>
           <Nav items={items} onNav={() => setMobile(false)} />
           <button onClick={doLogout} className="btn-ghost w-full mt-6" data-testid="mobile-logout-btn"><LogOut className="w-4 h-4" />Sign out</button>
         </SheetContent>

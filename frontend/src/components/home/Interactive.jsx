@@ -157,7 +157,7 @@ export function RewardsSection({ rewards = [] }) {
               <div className="p-5">
                 <h3 className="font-heading text-lg text-white">{r.title}</h3>
                 <p className="text-xs text-slate-400 mt-1">Illustrative milestone</p>
-                <p className="font-num text-amber-300">₹{coins(r.milestone, 0)}</p>
+                <p className="font-num text-amber-300">{coins(r.milestone, 0)}</p>
                 <span className="text-sm text-amber-400 inline-flex items-center gap-1 mt-3">View details <ArrowRight className="w-3.5 h-3.5" /></span>
               </div>
             </Link>

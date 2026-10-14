@@ -10,11 +10,11 @@ REWARDS = [
 
 
 def reward_extra(r):
-    m = f"₹{r['milestone']:,}"
+    m = f"{r['milestone']:,}"
     return {
         "description": f"A proposed achievement concept: {r['title']}. This is an unapproved reward concept, not a guaranteed prize. Production campaigns must be independently funded and legally reviewed.",
         "qualification_rules": [f"Illustrative team milestone: {m} in simulated team participation volume.", "Volume counts simulated plan enrollments across five generations.", "Suspended or duplicate accounts are excluded."],
-        "eligibility": ["Account in good standing", "Mobile number verified", "Account verification (KYC) completed"],
+        "eligibility": ["Account in good standing", "Account verification (KYC) completed"],
         "terms": ["Concept only — not an offer.", "Availability, specification and eligibility may change or be withdrawn.", "No cash alternative is implied.", "Subject to legal review before any launch."],
         "redemption": ["Reach the illustrative milestone", "Submit a claim from your dashboard", "Administrator reviews eligibility", "If an approved campaign exists, fulfilment is recorded"],
         "faqs": [{"q": "Is this reward guaranteed?", "a": "No. It is a proposed concept shown for demonstration only."}, {"q": "How is progress measured?", "a": "By simulated team participation volume, which has no monetary value."}],
@@ -23,8 +23,6 @@ def reward_extra(r):
 
 
 METHODS = [
-    {"name": "INR via UPI", "type": "upi", "network": "UPI", "currency": "INR", "address": "demo-merchant@upi", "min_amount": 10000, "max_amount": 10000000,
-     "instructions": "TEST MODE. Pay the exact amount to the UPI ID shown, then enter the 12-digit UTR as your payment reference and upload the payment screenshot."},
     {"name": "USDT (TRC20)", "type": "usdt_trc20", "network": "TRON (TRC20)", "currency": "USDT", "address": "TXyzDEMOaddressDoNotSend1234567890", "min_amount": 1000, "max_amount": 1000000,
      "instructions": "TEST MODE. Send only USDT on the TRON (TRC20) network. Enter the 64-character transaction hash as your reference."},
     {"name": "USDT (BEP20)", "type": "usdt_bep20", "network": "BNB Smart Chain (BEP20)", "currency": "USDT", "address": "0xDEMO000000000000000000000000000000000000", "min_amount": 1000, "max_amount": 1000000,
@@ -63,10 +61,10 @@ CONTENT = {
                     "Fees: spreads, commissions and network fees reduce results.", "Counterparty risk: brokers, exchanges or custodians can fail.", "No strategy produces consistent guaranteed profits."],
     "faqs": [
         {"q": "How do I register?", "a": "Click Create Account, enter your name, email, mobile number with country code and a password, accept the terms, and optionally add a referral code."},
-        {"q": "How does account verification work?", "a": "Verify your mobile number with a one-time code (mocked in demo mode) and submit account verification from your profile. An administrator reviews it."},
-        {"q": "What are coins?", "a": "Coins are an internal demonstration unit (1 INR = 1 coin, 1 USD = 100 coins by default). They are not a currency and have no market value."},
+        {"q": "How does account verification work?", "a": "Submit account verification from your profile. An administrator reviews it."},
+        {"q": "What are coins?", "a": "Coins are an internal demonstration unit (1 USD = 100 coins by default). They are not a currency and have no market value."},
         {"q": "What are simulations?", "a": "Plans run a daily illustrative calculation. Results are hypothetical, labelled as such, and never become withdrawable money."},
-        {"q": "Which payment methods are supported?", "a": "INR/UPI, USDT TRC20 and USDT BEP20 are configured in TEST MODE. No real investment deposits are accepted."},
+        {"q": "Which payment methods are supported?", "a": "USDT TRC20 and USDT BEP20 are configured in TEST MODE. No real investment deposits are accepted."},
         {"q": "How does the team structure work?", "a": "People who register with your code are your direct referrals (generation 1). Their referrals form generations 2–5."},
         {"q": "How is my account secured?", "a": "Passwords are hashed with bcrypt, logins are rate limited, sessions can be revoked and you can enable two-factor authentication."},
         {"q": "How do notifications work?", "a": "You receive in-app notifications automatically. Browser push is optional and only enabled after you click Enable Notifications."},

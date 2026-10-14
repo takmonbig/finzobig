@@ -46,7 +46,7 @@ def client_ip(request: Request):
 
 # ---------------- settings ----------------
 DEFAULT_SETTINGS = {
-    "site_name": "AurumNet",
+    "site_name": "Finzo.cc",
     "logo_url": "",
     "favicon_url": "",
     "theme": "midnight-gold",
@@ -55,8 +55,8 @@ DEFAULT_SETTINGS = {
     "contact": {"email": "support@example.com", "phone": "[Your phone]", "address": "[Your registered address]"},
     "company_info": "[Company legal name, registration details and jurisdiction — to be provided by the business]",
     "telegram": {"username": "your_support", "url": "https://t.me/your_support", "button_text": "Chat on Telegram",
-                 "availability": "Support available 10:00–19:00 IST, Mon–Sat", "default_message": "Hello, I need help with my payment record."},
-    "coin": {"name": "Demo Coin", "symbol": "DC", "decimals": 2, "rates": {"INR": 1, "USD": 100}, "history": []},
+                 "availability": "Support available Mon–Sat", "default_message": "Hello, I need help with my payment record."},
+    "coin": {"name": "Demo Coin", "symbol": "DC", "decimals": 2, "rates": {"USD": 100}, "history": []},
     "simulation_day_seconds": 86400,
     "signup_demo_grant": 10000,
     "session_timeout_minutes": 60,

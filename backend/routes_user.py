@@ -317,8 +317,7 @@ async def verify_asset(public_id, folder_prefix, max_bytes=5 * 1024 * 1024):
 
 
 # ---------------- deposits ----------------
-REF_RULES = {"upi": (r"^[A-Za-z0-9]{10,22}$", "UPI reference / UTR must be 10–22 letters or digits"),
-             "usdt_trc20": (r"^(0x)?[a-fA-F0-9]{64}$", "TRC20 transaction hash must be 64 hex characters"),
+REF_RULES = {"usdt_trc20": (r"^(0x)?[a-fA-F0-9]{64}$", "TRC20 transaction hash must be 64 hex characters"),
              "usdt_bep20": (r"^0x[a-fA-F0-9]{64}$", "BEP20 transaction hash must be 0x followed by 64 hex characters")}
 
 
@@ -382,21 +381,19 @@ async def withdrawal_info(user=Depends(get_current_user)):
 
 class WithdrawIn(BaseModel):
     amount: float = Field(gt=0)
-    destination_type: str = Field(pattern=r"^(upi|usdt_trc20|usdt_bep20)$")
+    destination_type: str = Field(pattern=r"^(usdt_trc20|usdt_bep20)$")
     destination: str = Field(min_length=4, max_length=120)
     idem_key: str = Field(min_length=8, max_length=64)
     totp_code: str | None = None
 
 
-DEST_RULES = {"upi": r"^[\w.\-]{2,64}@[A-Za-z]{2,64}$", "usdt_trc20": r"^T[1-9A-HJ-NP-Za-km-z]{33}$", "usdt_bep20": r"^0x[a-fA-F0-9]{40}$"}
+DEST_RULES = {"usdt_trc20": r"^T[1-9A-HJ-NP-Za-km-z]{33}$", "usdt_bep20": r"^0x[a-fA-F0-9]{40}$"}
 
 
 @router.post("/withdrawals")
 async def create_withdrawal(b: WithdrawIn, user=Depends(get_current_user)):
     await feature_on("withdrawals")
     s = await get_settings()
-    if not user.get("mobile_verified"):
-        raise HTTPException(400, "Verify your mobile number before requesting a withdrawal")
     if user.get("totp_enabled"):
         import pyotp
         full = await db.users.find_one({"id": user["id"]})

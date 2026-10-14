@@ -41,7 +41,7 @@ function CopyBtn({ text, testid }) {
   return <button className="btn-ghost !py-1.5 !px-3 text-xs" data-testid={testid} onClick={async () => { await navigator.clipboard.writeText(text); setOk(true); toast.success("Copied"); setTimeout(() => setOk(false), 1500); }}>{ok ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}{ok ? "Copied" : "Copy"}</button>;
 }
 
-const REF_HINT = { upi: "12-digit UTR / UPI reference", usdt_trc20: "64-character transaction hash", usdt_bep20: "0x + 64-character transaction hash" };
+const REF_HINT = { usdt_trc20: "64-character transaction hash", usdt_bep20: "0x + 64-character transaction hash" };
 
 function DepositForm({ m, onDone }) {
   const [f, setF] = useState({ amount: "", reference: "", note: "" });
@@ -91,7 +91,7 @@ function Deposit() {
               className={`px-4 py-2 rounded-xl text-sm border transition-colors ${m?.id === x.id ? "border-amber-400 bg-amber-500/10 text-amber-200" : "border-slate-700 text-slate-300 hover:border-slate-500"}`}>{x.name}</button>)}</div>
             <Glass className="space-y-4" data-testid="method-details">
               <div><p className="text-xs text-slate-500">Network</p><p className="text-white font-semibold" data-testid="method-network">{m.network}</p></div>
-              <div><p className="text-xs text-slate-500">{m.type === "upi" ? "UPI ID" : "Wallet address"}</p>
+              <div><p className="text-xs text-slate-500">Wallet address</p>
                 <div className="flex items-center gap-2 mt-1"><p className="font-num text-sm text-amber-200 break-all flex-1" data-testid="method-address">{m.address}</p><CopyBtn text={m.address} testid="copy-address-btn" /></div></div>
               <div className="bg-white rounded-xl p-3 w-fit mx-auto" data-testid="method-qr">{m.qr_url ? <img src={m.qr_url} alt="Payment QR" className="w-44 h-44 object-contain" /> : <QRCodeSVG value={m.address} size={176} />}</div>
               <p className="text-sm text-slate-300 whitespace-pre-wrap" data-testid="method-instructions">{m.instructions}</p>
@@ -118,7 +118,7 @@ function Withdraw() {
   const info = useQuery({ queryKey: ["wd-info"], queryFn: () => get("/withdrawals/info") });
   const [page, setPage] = useState(1);
   const hist = useQuery({ queryKey: ["withdrawals", page], queryFn: () => get("/withdrawals", { page, size: 10 }) });
-  const [f, setF] = useState({ amount: "", destination_type: "upi", destination: "", totp_code: "" });
+  const [f, setF] = useState({ amount: "", destination_type: "usdt_trc20", destination: "", totp_code: "" });
   const [key, setKey] = useState(newKey);
   const [err, setErr] = useState(null);
   const refresh = () => ["withdrawals", "wd-info", "dashboard", "wallet"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
@@ -139,13 +139,12 @@ function Withdraw() {
             <Stat label="Reserved for open requests" value={coins(i.verified?.reserved)} tone="violet" testid="wd-reserved" />
           </div>
           {!i.enabled && <ErrorBox error="Withdrawals are currently disabled by the administrator." />}
-          {!i.mobile_verified && <div className="text-sm text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-xl p-3" data-testid="wd-verify-notice">Verify your mobile number in Profile & security before requesting a withdrawal.</div>}
           <div className="grid sm:grid-cols-2 gap-3">
             <Field label="Amount" hint={`Min ${i.config.min} · Max ${i.config.max}`}><Input className="inp font-num" type="number" value={f.amount} onChange={(e) => setF({ ...f, amount: e.target.value })} data-testid="wd-amount-input" /></Field>
             <Field label="Destination method"><select className="w-full bg-slate-950/60 border border-slate-700 rounded-xl px-3 py-2 text-sm h-10" value={f.destination_type} onChange={(e) => setF({ ...f, destination_type: e.target.value })} data-testid="wd-method-select">
-              <option value="upi">UPI</option><option value="usdt_trc20">USDT TRC20</option><option value="usdt_bep20">USDT BEP20</option></select></Field>
+              <option value="usdt_trc20">USDT TRC20</option><option value="usdt_bep20">USDT BEP20</option></select></Field>
           </div>
-          <Field label="Destination" hint={{ upi: "name@bank", usdt_trc20: "T… address (34 chars)", usdt_bep20: "0x… address (42 chars)" }[f.destination_type]}><Input className="inp font-num" value={f.destination} onChange={(e) => setF({ ...f, destination: e.target.value })} data-testid="wd-destination-input" /></Field>
+          <Field label="Destination" hint={{ usdt_trc20: "T… address (34 chars)", usdt_bep20: "0x… address (42 chars)" }[f.destination_type]}><Input className="inp font-num" value={f.destination} onChange={(e) => setF({ ...f, destination: e.target.value })} data-testid="wd-destination-input" /></Field>
           {user.totp_enabled && <Field label="2FA code"><Input className="inp font-num" value={f.totp_code} onChange={(e) => setF({ ...f, totp_code: e.target.value })} data-testid="wd-totp-input" /></Field>}
           <div className="rounded-xl bg-slate-950/60 border border-slate-800 p-3 text-sm grid grid-cols-3 gap-2" data-testid="wd-fee-preview">
             <div><p className="text-xs text-slate-500">Amount</p><p className="font-num">{coins(amt)}</p></div><div><p className="text-xs text-slate-500">Fee ({i.config.fee_percent}%{i.config.fee_flat ? ` + ${i.config.fee_flat}` : ""})</p><p className="font-num text-red-300">{coins(fee)}</p></div>

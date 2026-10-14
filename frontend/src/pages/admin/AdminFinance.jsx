@@ -73,7 +73,7 @@ function Records({ kind }) {
   );
 }
 
-const EMPTY_M = { name: "", type: "upi", network: "UPI", currency: "INR", address: "", instructions: "", min_amount: 100, max_amount: 100000, active: true, sort: 0 };
+const EMPTY_M = { name: "", type: "usdt_trc20", network: "TRON (TRC20)", currency: "USDT", address: "", instructions: "", min_amount: 100, max_amount: 100000, active: true, sort: 0 };
 
 function Methods() {
   const qc = useQueryClient();
@@ -102,10 +102,10 @@ function Methods() {
           <DialogHeader><DialogTitle>{edit?.id ? "Edit" : "Add"} payment method</DialogTitle></DialogHeader>
           {edit && <div className="grid sm:grid-cols-2 gap-3">
             <Field label="Name"><Input className="inp" value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} data-testid="method-name-input" /></Field>
-            <Field label="Type"><select className={sel + " w-full"} value={edit.type} onChange={(e) => setEdit({ ...edit, type: e.target.value, currency: e.target.value === "upi" ? "INR" : "USDT" })} data-testid="method-type-select"><option value="upi">UPI</option><option value="usdt_trc20">USDT TRC20</option><option value="usdt_bep20">USDT BEP20</option></select></Field>
+            <Field label="Type"><select className={sel + " w-full"} value={edit.type} onChange={(e) => setEdit({ ...edit, type: e.target.value, currency: "USDT" })} data-testid="method-type-select"><option value="usdt_trc20">USDT TRC20</option><option value="usdt_bep20">USDT BEP20</option></select></Field>
             <Field label="Network"><Input className="inp" value={edit.network} onChange={(e) => setEdit({ ...edit, network: e.target.value })} data-testid="method-network-input" /></Field>
             <Field label="Currency"><Input className="inp" value={edit.currency} readOnly /></Field>
-            <div className="sm:col-span-2"><Field label="Wallet address / UPI ID"><Input className="inp font-num" value={edit.address} onChange={(e) => setEdit({ ...edit, address: e.target.value })} data-testid="method-address-input" /></Field></div>
+            <div className="sm:col-span-2"><Field label="Wallet address"><Input className="inp font-num" value={edit.address} onChange={(e) => setEdit({ ...edit, address: e.target.value })} data-testid="method-address-input" /></Field></div>
             <Field label="Min amount"><Input className="inp font-num" type="number" value={edit.min_amount} onChange={(e) => setEdit({ ...edit, min_amount: Number(e.target.value) })} data-testid="method-min-input" /></Field>
             <Field label="Max amount"><Input className="inp font-num" type="number" value={edit.max_amount} onChange={(e) => setEdit({ ...edit, max_amount: Number(e.target.value) })} data-testid="method-max-input" /></Field>
             <div className="sm:col-span-2"><Field label="Instructions"><Textarea className="inp" value={edit.instructions} onChange={(e) => setEdit({ ...edit, instructions: e.target.value })} data-testid="method-instructions-input" /></Field></div>

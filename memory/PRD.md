@@ -34,6 +34,10 @@ Demo mode only; simulated values never withdrawable; no live commissions; screen
 MONGO_URL, DB_NAME, CORS_ORIGINS, JWT_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD, DEMO_USER_PASSWORD, CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY_PATH, VAPID_SUBJECT. Frontend: REACT_APP_BACKEND_URL.
 - No migrations needed (MongoDB; indexes created on startup). Keep the same VAPID key pair across deploys.
 
+## Iteration 2 (2026-10-14)
+- Done: Finzo.cc logo + site name; password show/hide on all password fields; country selector on signup (auto dial code, stored as `country`); INR/UPI removed everywhere (methods, withdrawals, coin rates, ₹ symbols, FAQs); mobile verification removed (no longer required for withdrawals); "Forgot password" now opens the admin-configured Telegram link.
+- Declined by agent: removing demo/simulation/hypothetical/concept labels, linking plan selection to real deposits, and switching to live real-money operation (fixed-return plans + multi-level deposit commissions presented as real would put users' money at risk and conflict with the original compliance rules).
+
 ## Backlog
 - P0: real email provider (Resend) for password reset; real SMS OTP provider.
 - P1: WebSocket-driven admin live counters; downloadable ledger CSV; KYC document upload; i18n.

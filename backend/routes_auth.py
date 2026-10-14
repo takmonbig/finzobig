@@ -16,6 +16,7 @@ REFRESH_DAYS = 7
 
 class RegisterIn(BaseModel):
     full_name: str = Field(min_length=2, max_length=80)
+    country: str | None = Field(default=None, max_length=60)
     email: EmailStr
     country_code: str = Field(pattern=r"^\+\d{1,4}$")
     mobile: str = Field(pattern=r"^\d{6,14}$")
@@ -79,7 +80,7 @@ async def register(body: RegisterIn, request: Request, response: Response):
         if not referrer or referrer.get("status") == "suspended":
             raise HTTPException(400, "Invalid referral code")
         ancestors = [referrer["id"]] + (referrer.get("ancestors") or [])[:19]
-    user = {"id": uid(), "full_name": body.full_name.strip(), "email": email, "country_code": body.country_code, "mobile": body.mobile,
+    user = {"id": uid(), "full_name": body.full_name.strip(), "email": email, "country": body.country, "country_code": body.country_code, "mobile": body.mobile,
             "mobile_verified": False, "email_verified": False, "password_hash": hash_password(body.password), "role": "user", "status": "active",
             "kyc_status": "not_submitted", "referral_code": await new_referral_code(), "referrer_id": referrer["id"] if referrer else None,
             "ancestors": ancestors, "rank": "Member", "totp_enabled": False, "registration_ip": ip, "group": "default",

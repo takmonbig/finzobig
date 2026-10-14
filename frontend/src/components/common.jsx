@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { forwardRef, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
 import { ExternalLink, Loader2, Send, UploadCloud, Inbox, ChevronLeft, ChevronRight } from "lucide-react";
 import { api, uploadImage, validateImage } from "@/lib/api";
@@ -8,6 +10,17 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Progress } from "@/components/ui/progress";
 
 export const useSite = () => useQuery({ queryKey: ["site"], queryFn: () => api.get("/public/site").then((r) => r.data), staleTime: 60000 });
+
+export const PasswordInput = forwardRef(function PasswordInput({ className = "", testid, ...p }, ref) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative">
+      <Input ref={ref} type={show ? "text" : "password"} className={`inp pr-10 ${className}`} data-testid={testid} {...p} />
+      <button type="button" onClick={() => setShow(!show)} aria-label={show ? "Hide password" : "Show password"} data-testid={`${testid}-toggle`}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-300">{show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+    </div>
+  );
+});
 
 export const Glass = ({ className = "", children, ...p }) => <div className={`glass p-5 sm:p-6 ${className}`} {...p}>{children}</div>;
 

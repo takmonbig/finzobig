@@ -276,9 +276,9 @@ async def withdrawal_action(wid: str, b: WdActIn, request: Request, admin=Depend
 # ---------------- payment methods ----------------
 class MethodIn(BaseModel):
     name: str = Field(min_length=2, max_length=60)
-    type: str = Field(pattern=r"^(upi|usdt_trc20|usdt_bep20)$")
+    type: str = Field(pattern=r"^(usdt_trc20|usdt_bep20)$")
     network: str = Field(max_length=40)
-    currency: str = Field(pattern=r"^(INR|USDT)$")
+    currency: str = Field(pattern=r"^USDT$")
     address: str = Field(min_length=4, max_length=120)
     instructions: str = Field(max_length=2000)
     qr_public_id: str | None = None
