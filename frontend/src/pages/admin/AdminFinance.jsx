@@ -29,6 +29,7 @@ function ActionDialog({ target, actions, onClose, onDone, endpoint, needsConfirm
         {target?.status_note && <p className="text-xs text-slate-400">{target.status_note}</p>}
         <div className="flex flex-wrap gap-2">{actions(target).map((a) => <button key={a} onClick={() => setF({ ...f, action: a })} data-testid={`review-action-${a}`}
           className={`px-3 py-1.5 rounded-lg text-sm border ${f.action === a ? "border-amber-400 bg-amber-500/10 text-amber-200" : "border-slate-700"}`}>{a.replace("_", " ")}</button>)}</div>
+        {f.action === "approve_manual" && <p className="text-xs text-amber-200 flex gap-2"><AlertTriangle className="w-4 h-4 shrink-0" />Only approve after you have confirmed the USDT arrived in your own wallet. The requested amount is credited to the user's USDT balance.</p>}
         {f.action === "credit_onchain" && <p className="text-xs text-amber-200 flex gap-2"><AlertTriangle className="w-4 h-4 shrink-0" />Credits the actual on-chain amount received at the deposit address in this transaction, even if it differs from the requested amount.</p>}
         {f.action === "completed" && <Input className="inp font-num" placeholder="Payout transaction hash (verified on-chain)" value={f.payout_ref} onChange={(e) => setF({ ...f, payout_ref: e.target.value })} data-testid="review-payout-ref" />}
         <Textarea className="inp" placeholder="Note shown to the user (required)" value={f.note} onChange={(e) => setF({ ...f, note: e.target.value })} data-testid="review-note-input" />
@@ -48,7 +49,7 @@ function Records({ kind }) {
   const { data, isLoading } = useQuery({ queryKey: ["admin-" + kind, status, page, q], queryFn: () => get(`/admin/${kind}`, { status, page, q }) });
   const dep = kind === "deposits";
   const statuses = dep ? ["draft", "pending_verification", "verified", "rejected", "refunded", "failed"] : ["submitted", "under_review", "approved", "processing", "completed", "rejected", "cancelled"];
-  const DEP_ACT = { draft: ["reject"], pending_verification: ["recheck", "credit_onchain", "reject"], failed: ["credit_onchain", "reject"], verified: ["refund"] };
+  const DEP_ACT = { draft: ["approve_manual", "reject"], pending_verification: ["recheck", "credit_onchain", "approve_manual", "reject"], failed: ["credit_onchain", "approve_manual", "reject"], verified: ["refund"] };
   const WD_ACT = { submitted: ["under_review", "rejected"], under_review: ["approved", "rejected"], approved: ["processing", "rejected"], processing: ["completed"] };
   const acts = (t) => ((dep ? DEP_ACT : WD_ACT)[t?.status] || []);
   return (

@@ -86,8 +86,13 @@ function DepositForm({ m, open, onDone }) {
     onError: (e) => setErr(errMsg(e)),
   });
   if (open) return <PayStep d={open} onDone={onDone} />;
+  const presets = [50, 100, 250, 500, 1000, 2500, 5000, 10000].filter((v) => v * 100 >= m.min_amount && v * 100 <= m.max_amount);
   return (
     <div className="space-y-4" data-testid="deposit-form">
+      <div><p className="text-sm text-slate-300 mb-2">Choose an amount</p>
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">{presets.map((v) => (
+          <button key={v} type="button" onClick={() => setAmount(String(v))} data-testid={`deposit-preset-${v}`}
+            className={`py-2.5 rounded-xl border text-sm font-num transition-colors ${Number(amount) === v ? "border-amber-400 bg-amber-500/15 text-amber-200" : "border-slate-700 text-slate-300 hover:border-slate-500"}`}>{v.toLocaleString()}</button>))}</div></div>
       <Field label="Amount (USDT)" hint={`Min ${coins(m.min_amount, 0)} · Max ${coins(m.max_amount, 0)}`}><Input className="inp font-num" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} data-testid="deposit-amount-input" /></Field>
       <ErrorBox error={err} />
       <button className="btn-gold w-full" disabled={mut.isPending} onClick={() => (!amount || Number(amount) <= 0 ? setErr("Enter a valid amount") : mut.mutate())} data-testid="deposit-create-btn">{mut.isPending ? "Creating…" : "Continue to payment"}</button>

@@ -213,7 +213,7 @@ async def deposits(status: str = "", q: str = "", page: int = 1, size: int = 20,
 
 
 class DepActIn(BaseModel):
-    action: str = Field(pattern=r"^(recheck|credit_onchain|reject|refund)$")
+    action: str = Field(pattern=r"^(recheck|credit_onchain|approve_manual|reject|refund)$")
     note: str = Field(min_length=3, max_length=500)
 
 
@@ -232,13 +232,16 @@ async def deposit_action(did: str, b: DepActIn, request: Request, admin=Depends(
         if b.action == "credit_onchain" and d["status"] != "verified":
             raise HTTPException(400, f"Not credited: {d['status_note']}")
         return {"ok": True, "status": d["status"], "note": d["status_note"]}
-    allowed = {"reject": ["draft", "pending_verification", "failed"], "refund": ["verified"]}[b.action]
-    new = {"reject": "rejected", "refund": "refunded"}[b.action]
+    allowed = {"reject": ["draft", "pending_verification", "failed"], "refund": ["verified"], "approve_manual": ["draft", "pending_verification", "failed"]}[b.action]
+    new = {"reject": "rejected", "refund": "refunded", "approve_manual": "verified"}[b.action]
+    extra = {"credited_amount": d0["amount"], "verified_at": iso(), "verification": "manual"} if b.action == "approve_manual" else {}
     d = await db.payment_submissions.find_one_and_update({"id": did, "status": {"$in": allowed}},
-                                                         {"$set": {"status": new, "status_note": strip_html(b.note), "reviewed_by": admin["email"], "reviewed_at": iso()},
+                                                         {"$set": {"status": new, "status_note": strip_html(b.note), "reviewed_by": admin["email"], "reviewed_at": iso(), **extra},
                                                           "$push": {"history": {"status": new, "at": iso(), "by": admin["email"], "note": strip_html(b.note)}}})
     if not d:
         raise HTTPException(400, "Invalid status transition")
+    if b.action == "approve_manual":
+        await post_ledger(d["user_id"], "verified", d["amount"], "deposit_confirmed", f"USDT deposit approved by admin {d.get('reference', '')[:12]}", ref=did, idem_key=f"dep:{did}")
     if b.action == "refund":
         amt = d.get("credited_amount", d["amount"])
         await post_ledger(d["user_id"], "verified", -amt, "deposit_refund_reversal", f"Reversal for refunded deposit {d.get('reference', '')[:12]}", ref=did, idem_key=f"depref:{did}")

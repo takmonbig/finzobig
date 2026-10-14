@@ -40,7 +40,7 @@ function Banners() {
   ));
 }
 
-const QUICK = [["Deposit information", "/app/deposit", ArrowDownToLine], ["Withdrawal information", "/app/withdraw", ArrowUpFromLine], ["Participation plans", "/app/plans", Layers], ["My team", "/app/team", Network],
+const QUICK = [["Deposit information", "/app/deposit", ArrowDownToLine], ["Withdrawal information", "/app/withdraw", ArrowUpFromLine], ["Wallet & ledger", "/app/wallet", Coins], ["My team", "/app/team", Network],
   ["Rewards", "/app/rewards", Trophy], ["Notifications", "/app/notifications", Bell], ["Support", "/app/support", LifeBuoy], ["Profile settings", "/app/profile", UserCog]];
 
 function Overview() {
@@ -53,10 +53,6 @@ function Overview() {
       <PageHeader title="Account overview" subtitle="Your USDT wallet, plans and team at a glance." />
       <Banners />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Stat label="Available coins" value={coins(w.demo_coins?.available)} icon={Coins} testid="stat-demo-coins" />
-        <Stat label="Total in plans" value={coins(d.total_sim_deposits)} icon={TrendingUp} tone="blue" testid="stat-sim-deposits" hint="Coins" />
-        <Stat label="Active plans" value={d.active_plans} icon={Layers} tone="violet" testid="stat-active-plans" />
-        <Stat label="Plan earnings" value={coins(d.sim_earnings)} icon={Activity} tone="emerald" testid="stat-sim-earnings" hint="Coins · not withdrawable" />
         <Stat label="Team members" value={d.team} icon={Users} tone="blue" testid="stat-team" hint={`${d.direct} direct`} />
         <Stat label="Current rank" value={d.rank} icon={Award} testid="stat-rank" />
         <Stat label="Unread notifications" value={d.unread} icon={Bell} tone="violet" testid="stat-unread" />

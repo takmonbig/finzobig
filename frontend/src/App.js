@@ -36,7 +36,7 @@ const qc = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWin
 
 const USER_NAV = [
   { to: "/app", label: "Overview", icon: LayoutDashboard, end: true }, { to: "/app/wallet", label: "Wallet & ledger", icon: Wallet },
-  { to: "/app/plans", label: "Participation plans", icon: Layers }, { to: "/app/deposit", label: "Deposit", icon: ArrowDownToLine },
+  { to: "/app/deposit", label: "Deposit", icon: ArrowDownToLine },
   { to: "/app/withdraw", label: "Withdrawal", icon: ArrowUpFromLine }, { to: "/app/team", label: "My team", icon: Network },
   { to: "/app/rewards", label: "Rewards", icon: Trophy }, { to: "/app/notifications", label: "Notifications", icon: Bell },
   { to: "/app/announcements", label: "Team announcements", icon: Megaphone }, { to: "/app/support", label: "Support", icon: LifeBuoy },
@@ -80,7 +80,7 @@ function AppRoutes() {
       <Route path="/app" element={<Guard role="user"><AppShell items={USER_NAV} area="user" /></Guard>}>
         <Route index element={S(<U page="overview" />)} />
         <Route path="wallet" element={S(<F page="wallet" />)} />
-        <Route path="plans" element={S(<U page="plans" />)} />
+        <Route path="plans" element={<Navigate to="/app/deposit" replace />} />
         <Route path="deposit" element={S(<F page="deposit" />)} />
         <Route path="withdraw" element={S(<F page="withdraw" />)} />
         <Route path="team" element={S(<T page="team" />)} />
