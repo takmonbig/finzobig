@@ -153,6 +153,17 @@ async def dashboard(user=Depends(get_current_user)):
     }
 
 
+@router.get("/activity/calendar")
+async def activity_calendar(month: str, user=Depends(get_current_user)):
+    if not re.fullmatch(r"\d{4}-\d{2}", month):
+        raise HTTPException(400, "month must be YYYY-MM")
+    q = {"user_id": user["id"], "created_at": {"$regex": f"^{month}"}}
+    ledger = await db.ledger_transactions.find({**q, "account": {"$in": ["verified", "promo"]}}, {"_id": 0, "id": 1, "account": 1, "amount": 1, "type": 1, "memo": 1, "created_at": 1}).to_list(2000)
+    deps = await db.payment_submissions.find(q, {"_id": 0, "id": 1, "amount": 1, "status": 1, "method_name": 1, "created_at": 1}).to_list(500)
+    wds = await db.withdrawal_requests.find(q, {"_id": 0, "id": 1, "amount": 1, "net_amount": 1, "status": 1, "destination_type": 1, "created_at": 1}).to_list(500)
+    return {"month": month, "ledger": ledger, "deposits": deps, "withdrawals": wds}
+
+
 @router.get("/wallet")
 async def wallet(account: str | None = None, page: int = 1, size: int = 20, user=Depends(get_current_user)):
     page, size = page_args(page, size)

@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { LayoutDashboard, Wallet, Layers, ArrowDownToLine, ArrowUpFromLine, Network, Trophy, Bell, Megaphone, LifeBuoy, UserCog, Users, CreditCard, Gift,
-  FileText, Settings, ScrollText, ShieldCheck, Landmark, MessageSquareWarning, PlayCircle, Video, Target } from "lucide-react";
+  FileText, Settings, ScrollText, ShieldCheck, Landmark, MessageSquareWarning, PlayCircle, Video, Target, CalendarDays } from "lucide-react";
 import { api } from "@/lib/api";
 import { initPixels, track } from "@/lib/pixel";
 import { Toaster } from "@/components/ui/sonner";
@@ -23,6 +23,7 @@ const AF = lazy(() => import("@/pages/admin/AdminFinance"));
 const AC = lazy(() => import("@/pages/admin/AdminContent"));
 const L = lazy(() => import("@/pages/app/Learn"));
 const AL = lazy(() => import("@/pages/admin/AdminLearn"));
+const ACT = lazy(() => import("@/pages/app/Activity"));
 
 function PixelTracker() {
   const loc = useLocation();
@@ -36,7 +37,7 @@ const qc = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWin
 
 const USER_NAV = [
   { to: "/app", label: "Overview", icon: LayoutDashboard, end: true }, { to: "/app/wallet", label: "Wallet & ledger", icon: Wallet },
-  { to: "/app/deposit", label: "Deposit", icon: ArrowDownToLine },
+  { to: "/app/deposit", label: "Deposit", icon: ArrowDownToLine }, { to: "/app/activity", label: "Activity calendar", icon: CalendarDays },
   { to: "/app/withdraw", label: "Withdrawal", icon: ArrowUpFromLine }, { to: "/app/team", label: "My team", icon: Network },
   { to: "/app/rewards", label: "Rewards", icon: Trophy }, { to: "/app/notifications", label: "Notifications", icon: Bell },
   { to: "/app/announcements", label: "Team announcements", icon: Megaphone }, { to: "/app/support", label: "Support", icon: LifeBuoy },
@@ -81,6 +82,7 @@ function AppRoutes() {
         <Route index element={S(<U page="overview" />)} />
         <Route path="wallet" element={S(<F page="wallet" />)} />
         <Route path="plans" element={<Navigate to="/app/deposit" replace />} />
+        <Route path="activity" element={S(<ACT />)} />
         <Route path="deposit" element={S(<F page="deposit" />)} />
         <Route path="withdraw" element={S(<F page="withdraw" />)} />
         <Route path="team" element={S(<T page="team" />)} />

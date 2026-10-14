@@ -94,7 +94,28 @@ async def user_detail(user_id: str, admin=Depends(require_admin)):
             "withdrawals": await db.withdrawal_requests.find({"user_id": user_id}, {"_id": 0, "open_lock": 0}).sort("created_at", -1).to_list(50),
             "enrollments": await db.demo_plan_enrollments.find({"user_id": user_id}, {"_id": 0, "idem_key": 0}).to_list(100),
             "rank_history": await db.rank_history.find({"user_id": user_id}, P0).sort("created_at", -1).to_list(50),
+            "sessions": await db.sessions.find({"user_id": user_id}, {"_id": 0, "id": 1, "ip": 1, "user_agent": 1, "created_at": 1, "last_seen_at": 1, "revoked": 1, "expires_at": 1}).sort("created_at", -1).to_list(30),
+            "security_events": await db.security_events.find({"user_id": user_id}, P0).sort("created_at", -1).to_list(30),
+            "ledger": await db.ledger_transactions.find({"user_id": user_id}, P0).sort("created_at", -1).to_list(100),
             "active_sessions": await db.sessions.count_documents({"user_id": user_id, "revoked": False})}
+
+
+@router.get("/users/{user_id}/downline")
+async def user_downline(user_id: str, admin=Depends(require_admin)):
+    rows = await db.users.find({"$or": [{f"ancestors.{i}": user_id} for i in range(5)]},
+                               {"_id": 0, "id": 1, "full_name": 1, "email": 1, "country": 1, "country_code": 1, "mobile": 1, "rank": 1, "status": 1, "deleted": 1,
+                                "created_at": 1, "last_login_at": 1, "last_active_at": 1, "last_login_ip": 1, "ancestors": 1, "referral_code": 1, "kyc_status": 1}).to_list(5000)
+    ids = [r["id"] for r in rows]
+    bal = {w["user_id"]: w.get("balance", 0) for w in await db.wallet_accounts.find({"user_id": {"$in": ids}, "account": "verified"}, {"_id": 0, "user_id": 1, "balance": 1}).to_list(5000)}
+    dep = {d["_id"]: d["total"] for d in await db.payment_submissions.aggregate([{"$match": {"user_id": {"$in": ids}, "status": "verified"}},
+                                                                                     {"$group": {"_id": "$user_id", "total": {"$sum": {"$ifNull": ["$credited_amount", "$amount"]}}}}]).to_list(5000)}
+    out = []
+    for r in rows:
+        anc = r.pop("ancestors")
+        r.update(generation=anc.index(user_id) + 1, parent_id=anc[0], usdt_balance=bal.get(r["id"], 0), verified_deposits=dep.get(r["id"], 0))
+        out.append(r)
+    by_gen = [sum(1 for r in out if r["generation"] == g) for g in range(1, 6)]
+    return {"items": out, "by_generation": by_gen, "total": len(out)}
 
 
 class UserEditIn(BaseModel):

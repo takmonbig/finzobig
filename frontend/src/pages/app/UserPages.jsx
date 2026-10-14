@@ -50,7 +50,7 @@ function Overview() {
   const w = d.wallets;
   return (
     <div data-testid="user-overview">
-      <PageHeader title="Account overview" subtitle="Your USDT wallet, plans and team at a glance." />
+      <PageHeader title="Account overview" subtitle="Your USDT wallet and team at a glance." />
       <Banners />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat label="Team members" value={d.team} icon={Users} tone="blue" testid="stat-team" hint={`${d.direct} direct`} />

@@ -44,7 +44,29 @@ function Overview() {
   );
 }
 
-function UserDetail({ id, onClose }) {
+function Downline({ id, onOpen }) {
+  const [q, setQ] = useState("");
+  const [gen, setGen] = useState("");
+  const { data, isLoading } = useQuery({ queryKey: ["admin-downline", id], queryFn: () => get(`/admin/users/${id}/downline`) });
+  if (isLoading) return <Loader />;
+  const rows = data.items.filter((r) => (!gen || r.generation === Number(gen)) && (!q || `${r.full_name} ${r.email}`.toLowerCase().includes(q.toLowerCase())));
+  return (
+    <div className="space-y-3" data-testid="ud-downline">
+      <div className="flex flex-wrap gap-2 text-xs">{data.by_generation.map((c, i) => <span key={i} className="px-2 py-1 rounded-lg bg-slate-900 border border-slate-800">T{i + 1}: <b className="text-white">{c}</b></span>)}<span className="px-2 py-1 rounded-lg bg-amber-500/10 text-amber-200">Total {data.total}</span></div>
+      <div className="flex gap-2"><Input className="inp" placeholder="Search name or email" value={q} onChange={(e) => setQ(e.target.value)} data-testid="ud-downline-search" />
+        <select className={sel} value={gen} onChange={(e) => setGen(e.target.value)} data-testid="ud-downline-gen"><option value="">All</option>{[1, 2, 3, 4, 5].map((g) => <option key={g} value={g}>{`T${g}`}</option>)}</select></div>
+      <div className="overflow-x-auto"><table className="tbl"><thead><tr><th>Gen</th><th>Member</th><th>Contact</th><th>Rank</th><th>Status</th><th>Joined</th><th>Last login</th><th>Last active</th><th>USDT bal.</th><th>Deposited</th></tr></thead>
+        <tbody>{rows.map((r) => <tr key={r.id} className="cursor-pointer" onClick={() => onOpen(r.id)} data-testid={`ud-downline-row-${r.id}`}>
+          <td className="font-num">T{r.generation}</td><td><p className="text-white">{r.full_name}</p><p className="text-[11px] text-slate-500">{r.referral_code}</p></td>
+          <td className="text-xs"><p>{r.email}</p><p className="text-slate-500">{r.country_code} {r.mobile}</p></td><td><RankBadge rank={r.rank} /></td><td><StatusBadge status={r.deleted ? "deleted" : r.status} /></td>
+          <td className="text-xs whitespace-nowrap">{fdate(r.created_at)}</td><td className="text-xs whitespace-nowrap">{r.last_login_at ? fdate(r.last_login_at) : "—"}</td><td className="text-xs whitespace-nowrap">{r.last_active_at ? fdate(r.last_active_at) : "—"}</td>
+          <td className="font-num">{coins(r.usdt_balance)}</td><td className="font-num">{coins(r.verified_deposits)}</td></tr>)}</tbody></table></div>
+      {!rows.length && <Empty title="No downline members" />}
+    </div>
+  );
+}
+
+function UserDetail({ id, onClose, onOpen }) {
   const qc = useQueryClient();
   const { data, isLoading } = useQuery({ queryKey: ["admin-user", id], queryFn: () => get(`/admin/users/${id}`), enabled: !!id });
   const [adj, setAdj] = useState({ account: "demo_coins", amount: "", memo: "" });
@@ -60,6 +82,8 @@ function UserDetail({ id, onClose }) {
             <p>Email: <span className="text-white">{u.email}</span></p><p>Mobile: {u.country_code} {u.mobile} {u.mobile_verified ? "✓" : "(unverified)"}</p>
             <p>Referral code: <span className="font-num">{u.referral_code}</span></p><p>Referrer: {data.referrer ? `${data.referrer.full_name} (${data.referrer.email})` : "—"}</p>
             <p>Direct / team: {data.direct} / {data.team}</p><p>Team volume: {coins(data.team_volume, 0)}</p><p>Joined: {fdate(u.created_at)}</p><p>Active sessions: {data.active_sessions}</p>
+            <p>Last login: {u.last_login_at ? fdate(u.last_login_at) : "—"} {u.last_login_ip ? `· ${u.last_login_ip}` : ""}</p><p>Last active: {u.last_active_at ? fdate(u.last_active_at) : "—"}</p>
+            <p>Country: {u.country || "—"}</p><p>2FA: {u.totp_enabled ? "on" : "off"}</p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">{Object.entries(data.wallets).map(([k, w]) => <div key={k} className="rounded-xl bg-slate-950/60 border border-slate-800 p-2"><p className="text-[10px] text-slate-500">{k}</p><p className="font-num text-sm">{coins(w.balance)}</p></div>)}</div>
           <div className="grid sm:grid-cols-3 gap-3 items-end">
@@ -72,7 +96,13 @@ function UserDetail({ id, onClose }) {
               <Input className="inp font-num" type="number" placeholder="+/- amount" value={adj.amount} onChange={(e) => setAdj({ ...adj, amount: e.target.value })} data-testid="ud-adj-amount" />
               <Input className="inp" placeholder="Reason (audited)" value={adj.memo} onChange={(e) => setAdj({ ...adj, memo: e.target.value })} data-testid="ud-adj-memo" />
               <button className="btn-gold !py-2" disabled={!adj.amount || adj.memo.length < 3} onClick={adjust} data-testid="ud-adj-btn">Post</button></div></div>
-          <Tabs defaultValue="dep"><TabsList className="bg-slate-900"><TabsTrigger value="dep">Deposits</TabsTrigger><TabsTrigger value="wd">Withdrawals</TabsTrigger><TabsTrigger value="en">Plans</TabsTrigger><TabsTrigger value="rk">Rank history</TabsTrigger></TabsList>
+          <Tabs defaultValue="dl"><TabsList className="bg-slate-900 flex-wrap h-auto"><TabsTrigger value="dl" data-testid="ud-tab-downline">Downline</TabsTrigger><TabsTrigger value="dep">Deposits</TabsTrigger><TabsTrigger value="wd">Withdrawals</TabsTrigger><TabsTrigger value="lg" data-testid="ud-tab-ledger">Ledger</TabsTrigger><TabsTrigger value="ss" data-testid="ud-tab-sessions">Logins & sessions</TabsTrigger><TabsTrigger value="en">Plans</TabsTrigger><TabsTrigger value="rk">Rank history</TabsTrigger></TabsList>
+            <TabsContent value="dl"><Downline id={id} onOpen={onOpen} /></TabsContent>
+            <TabsContent value="lg"><div className="overflow-x-auto"><table className="tbl"><thead><tr><th>Date</th><th>Account</th><th>Type</th><th>Memo</th><th>Amount</th><th>Balance</th></tr></thead>
+              <tbody>{data.ledger.map((e) => <tr key={e.id}><td className="text-xs whitespace-nowrap">{fdate(e.created_at)}</td><td className="text-xs">{e.account}</td><td className="text-xs">{e.type}</td><td className="text-xs">{e.memo}</td><td className={`font-num ${e.amount >= 0 ? "text-emerald-300" : "text-red-300"}`}>{coins(e.amount)}</td><td className="font-num">{coins(e.balance_after)}</td></tr>)}</tbody></table></div></TabsContent>
+            <TabsContent value="ss"><div className="overflow-x-auto"><table className="tbl"><thead><tr><th>Signed in</th><th>Last seen</th><th>IP</th><th>Device</th><th>State</th></tr></thead>
+              <tbody>{data.sessions.map((s) => <tr key={s.id}><td className="text-xs whitespace-nowrap">{fdate(s.created_at)}</td><td className="text-xs whitespace-nowrap">{s.last_seen_at ? fdate(s.last_seen_at) : "—"}</td><td className="font-num text-xs">{s.ip}</td><td className="text-[11px] text-slate-400 max-w-[220px] truncate">{s.user_agent}</td><td><StatusBadge status={s.revoked ? "revoked" : "active"} /></td></tr>)}</tbody></table></div>
+              {data.security_events.length > 0 && <div className="mt-3"><p className="text-xs text-slate-400 mb-1">Security events</p>{data.security_events.map((e) => <p key={e.id} className="text-xs py-1 border-b border-slate-800">{fdate(e.created_at)} · {e.type} · {e.ip}</p>)}</div>}</TabsContent>
             <TabsContent value="dep">{data.deposits.map((d) => <p key={d.id} className="text-xs py-1 border-b border-slate-800">{fdate(d.created_at)} · {d.method_name} · {coins(d.amount)} · <StatusBadge status={d.status} /></p>)}</TabsContent>
             <TabsContent value="wd">{data.withdrawals.map((d) => <p key={d.id} className="text-xs py-1 border-b border-slate-800">{fdate(d.created_at)} · {coins(d.amount)} · <StatusBadge status={d.status} /></p>)}</TabsContent>
             <TabsContent value="en">{data.enrollments.map((d) => <p key={d.id} className="text-xs py-1 border-b border-slate-800">{d.plan_name} · {coins(d.amount)} · {d.days_credited}/{d.duration_days} · <StatusBadge status={d.status} /></p>)}</TabsContent>
@@ -125,7 +155,7 @@ function UsersPage() {
             <td className="text-white">{u.full_name}{u.role === "super_admin" && <span className="text-[10px] text-amber-400 ml-1">ADMIN</span>}</td><td>{u.email}</td><td><RankBadge rank={u.rank} /></td><td><StatusBadge status={u.kyc_status} /></td><td><StatusBadge status={u.deleted ? "removed" : u.status} /></td><td className="whitespace-nowrap">{fdate(u.created_at)}</td></tr>)}</tbody></table></div> : <Empty title="No users match" />}
         {data && <Pager page={f.page} size={20} total={data.total} onPage={(p) => setF({ ...f, page: p })} />}
       </Glass>
-      <UserDetail id={open} onClose={() => setOpen(null)} />
+      <UserDetail id={open} onClose={() => setOpen(null)} onOpen={setOpen} />
       <Dialog open={!!ann} onOpenChange={(o) => !o && setAnn(null)}>
         <DialogContent className="bg-[#0C1120] border-amber-500/20"><DialogHeader><DialogTitle>Announce to {picked.length} user(s)</DialogTitle></DialogHeader>
           {ann && <><Input className="inp" placeholder="Title" value={ann.title} onChange={(e) => setAnn({ ...ann, title: e.target.value })} data-testid="bulk-ann-title" />
