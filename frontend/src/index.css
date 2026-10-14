@@ -1,0 +1,90 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --background: 224 71% 4%;
+        --foreground: 210 40% 98%;
+        --card: 224 55% 7%;
+        --card-foreground: 210 40% 98%;
+        --popover: 224 55% 7%;
+        --popover-foreground: 210 40% 98%;
+        --primary: 43 96% 56%;
+        --primary-foreground: 224 71% 4%;
+        --secondary: 220 50% 16%;
+        --secondary-foreground: 210 40% 98%;
+        --muted: 223 47% 11%;
+        --muted-foreground: 215 20% 65%;
+        --accent: 262 83% 58%;
+        --accent-foreground: 210 40% 98%;
+        --destructive: 0 84% 60%;
+        --destructive-foreground: 210 40% 98%;
+        --border: 220 35% 18%;
+        --input: 220 35% 18%;
+        --ring: 43 96% 56%;
+        --chart-1: 43 96% 56%;
+        --chart-2: 217 91% 60%;
+        --chart-3: 262 83% 65%;
+        --chart-4: 160 84% 39%;
+        --chart-5: 340 75% 55%;
+        --radius: 0.85rem;
+    }
+    * { @apply border-border; }
+    html { scroll-behavior: smooth; }
+    body {
+        @apply bg-background text-foreground;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        -webkit-font-smoothing: antialiased;
+    }
+    ::selection { background: rgba(245, 158, 11, 0.35); color: #fff; }
+}
+
+@layer components {
+    .font-display { font-family: 'Outfit', sans-serif; }
+    .font-heading { font-family: 'Cinzel', 'Outfit', serif; letter-spacing: 0.01em; }
+    .font-num { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+    .glass {
+        @apply bg-[#0C1120]/80 backdrop-blur-xl border border-amber-500/15 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.37)];
+        transition: border-color .3s ease, transform .3s ease;
+    }
+    .glass-hover:hover { @apply border-amber-500/40; transform: translateY(-2px); }
+    .btn-gold {
+        @apply inline-flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 text-slate-950 font-bold px-5 py-2.5 rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.3)] disabled:opacity-50 disabled:pointer-events-none;
+        transition: box-shadow .2s ease, transform .2s ease;
+    }
+    .btn-gold:hover { box-shadow: 0 0 30px rgba(245, 158, 11, 0.5); transform: scale(1.02); }
+    .btn-gold:active { transform: scale(0.98); }
+    .btn-ghost {
+        @apply inline-flex items-center justify-center gap-2 bg-slate-900/80 text-amber-300 border border-amber-500/30 font-semibold px-4 py-2.5 rounded-xl disabled:opacity-50;
+        transition: background-color .2s ease, border-color .2s ease;
+    }
+    .btn-ghost:hover { @apply bg-slate-800 border-amber-500/60; }
+    .eyebrow { @apply text-xs uppercase tracking-[0.25em] text-amber-400/90 font-semibold; }
+    .gold-text { @apply bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-transparent; }
+    .tbl { @apply w-full text-left text-sm text-slate-300; }
+    .tbl th { @apply px-3 py-2.5 text-xs uppercase tracking-wider text-slate-400 font-semibold bg-slate-900/60 whitespace-nowrap; }
+    .tbl td { @apply px-3 py-2.5 border-t border-slate-800/80 align-top; }
+    .tbl tr:hover td { @apply bg-slate-900/40; }
+    .inp { @apply bg-slate-950/60 border-slate-700/70 focus-visible:ring-amber-500/60; }
+}
+
+.mesh-bg {
+    background:
+        radial-gradient(60rem 40rem at 10% -10%, rgba(59, 130, 246, 0.14), transparent 60%),
+        radial-gradient(50rem 35rem at 100% 10%, rgba(139, 92, 246, 0.14), transparent 60%),
+        radial-gradient(40rem 30rem at 50% 110%, rgba(245, 158, 11, 0.10), transparent 60%),
+        #070A12;
+}
+.animated-gradient {
+    background: linear-gradient(120deg, rgba(245,158,11,.18), rgba(59,130,246,.18), rgba(139,92,246,.18), rgba(245,158,11,.18));
+    background-size: 300% 300%;
+    animation: gradientShift 14s ease infinite;
+}
+@keyframes gradientShift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+.grain::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 1; opacity: .035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+@media (prefers-reduced-motion: reduce) { .animated-gradient { animation: none; } html { scroll-behavior: auto; } }

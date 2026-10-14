@@ -1,0 +1,75 @@
+{
+  "theme": {
+    "name": "Midnight Executive Gold & Sapphire",
+    "mode": "dark",
+    "google_fonts_import": "@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');",
+    "font_families": {
+      "display": "'Outfit', sans-serif",
+      "heading": "'Cinzel', 'Outfit', serif",
+      "body": "'Plus Jakarta Sans', sans-serif",
+      "mono": "'JetBrains Mono', monospace"
+    }
+  },
+  "colors": {
+    "hsl_palette": {
+      "--background": "224 71% 4%",
+      "--foreground": "210 40% 98%",
+      "--card": "224 55% 7%",
+      "--card-foreground": "210 40% 98%",
+      "--popover": "224 55% 7%",
+      "--popover-foreground": "210 40% 98%",
+      "--primary": "43 96% 56%",
+      "--primary-foreground": "224 71% 4%",
+      "--secondary": "220 50% 16%",
+      "--secondary-foreground": "210 40% 98%",
+      "--muted": "223 47% 11%",
+      "--muted-foreground": "215 20% 65%",
+      "--accent": "262 83% 58%",
+      "--accent-foreground": "210 40% 98%",
+      "--destructive": "0 84% 60%",
+      "--destructive-foreground": "210 40% 98%",
+      "--border": "220 35% 18%",
+      "--input": "220 35% 18%",
+      "--ring": "43 96% 56%",
+      "--chart-1": "43 96% 56%",
+      "--chart-2": "217 91% 60%",
+      "--chart-3": "262 83% 65%",
+      "--chart-4": "160 84% 39%",
+      "--chart-5": "340 75% 55%"
+    },
+    "hex_reference": {
+      "background_midnight": "#070A12",
+      "card_surface": "#0C1120",
+      "gold_primary": "#F59E0B",
+      "gold_hover": "#D97706",
+      "blue_electric": "#3B82F6",
+      "violet_royal": "#8B5CF6",
+      "emerald_success": "#10B981",
+      "border_glow": "rgba(245, 158, 11, 0.2)"
+    }
+  },
+  "key_component_styles": {
+    "glass_card": "bg-[#0C1120]/80 backdrop-blur-xl border border-amber-500/20 shadow-[0_8px_32px_rgba(0,0,0,0.37)] hover:border-amber-500/40 transition-all duration-300 rounded-2xl p-6",
+    "primary_button": "bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 text-slate-950 font-bold px-6 py-3 rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.35)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer",
+    "secondary_button": "bg-slate-900/90 text-amber-400 border border-amber-500/30 hover:bg-slate-800 hover:border-amber-500/60 font-semibold px-5 py-2.5 rounded-xl transition-all duration-200 cursor-pointer",
+    "table_style": "w-full text-left text-sm text-slate-300 border-collapse bg-[#0C1120]/90 rounded-xl overflow-hidden border border-slate-800",
+    "badge_rank": "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border shadow-sm",
+    "sidebar": "w-64 bg-[#070A12]/95 backdrop-blur-2xl border-r border-slate-800/80 min-h-screen p-5 flex flex-col justify-between"
+  },
+  "image_urls": {
+    "hero_mobile_app": "https://images.unsplash.com/photo-1609921141835-710b7fa6e438?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBzbWFydHBob25lJTIwZmluYW5jZSUyMGFwcHxlbnwwfHx8fDE3OTE5NTY3NTl8MA&ixlib=rb-4.1.0&q=85",
+    "reward_smartphone": "https://images.unsplash.com/photo-1681825984459-47ee999da245?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwyfHxsdXh1cnklMjBzbWFydHBob25lJTIwZmluYW5jZSUyMGFwcHxlbnwwfHx8fDE3OTE5NTY3NTl8MA&ixlib=rb-4.1.0&q=85",
+    "reward_trip": "https://images.unsplash.com/photo-1561501900-3701fa6a0864?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwzfHxsdXh1cnklMjByZXNvcnQlMjB0cm9waWNhbCUyMHRyYXZlbCUyMHJld2FyZHxlbnwwfHx8fDE3OTE5NTY3NTl8MA&ixlib=rb-4.1.0&q=85",
+    "reward_suv": "https://images.unsplash.com/photo-1699159906437-56451f9bb99d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHw0fHxsdXh1cnklMjBzdXYlMjBzcG9ydHMlMjBjYXIlMjByZXdhcmR8ZW58MHx8fHwxNzkxOTU2NzU5fDA&ixlib=rb-4.1.0&q=85",
+    "reward_luxury_car": "https://images.unsplash.com/photo-1592048973030-1043beca8e5a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwyfHxsdXh1cnklMjBzdXYlMjBzcG9ydHMlMjBjYXIlMjByZXdhcmR8ZW58MHx8fHwxNzkxOTU2NzU5fDA&ixlib=rb-4.1.0&q=85"
+  },
+  "instructions_to_main_agent": [
+    "Always render the system in explicit DEMO MODE with prominent badges ('DEMO MODE: Simulated Platform & Hypothetical Calculations').",
+    "Implement 3 clear route modes or toggles: Public Marketing Website, User Dashboard, and Super Admin Panel.",
+    "Marketing page must include: Hero ('One Platform. Complete Financial Account Management.'), key benefits grid, 8 demo investment/participation plans with dynamic profit calculator, 5 trading asset categories with risk warnings, 5-level referral team diagram, 4 luxury reward milestone cards, interactive FAQ, and footer.",
+    "User Dashboard must include: Sidebar nav (mobile responsive sheet/drawer), balance stat cards, interactive Recharts earnings chart, deposit screen with simulated USDT/BTC QR code + copy address + file upload, withdrawal flow, referral team network tree, and notifications modal with clickable action links.",
+    "Super Admin Dashboard must include: Dense data tables with bulk action checkboxes (approve/reject deposits, user status changes), CMS content editor for plans/notices, platform setting toggles, and detailed log records.",
+    "ALL interactive elements (buttons, inputs, links, tabs, tables, dropdowns, modals) MUST include explicit kebab-case data-testid attributes (e.g. data-testid='plan-calculator-input').",
+    "Never rely on pure transparent backgrounds for headers or overlays; use dark glassmorphism (backdrop-blur-xl bg-[#070A12]/80) to preserve text readability."
+  ]
+}
