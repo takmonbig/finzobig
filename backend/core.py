@@ -50,13 +50,13 @@ DEFAULT_SETTINGS = {
     "logo_url": "",
     "favicon_url": "",
     "theme": "midnight-gold",
-    "demo_mode": True,
-    "real_money_enabled": False,
+    "demo_mode": False,
+    "real_money_enabled": True,
     "contact": {"email": "support@example.com", "phone": "[Your phone]", "address": "[Your registered address]"},
     "company_info": "[Company legal name, registration details and jurisdiction — to be provided by the business]",
     "telegram": {"username": "your_support", "url": "https://t.me/your_support", "button_text": "Chat on Telegram",
                  "availability": "Support available Mon–Sat", "default_message": "Hello, I need help with my payment record."},
-    "coin": {"name": "Demo Coin", "symbol": "DC", "decimals": 2, "rates": {"USD": 100}, "history": []},
+    "coin": {"name": "Finzo Coin", "symbol": "FZC", "decimals": 2, "rates": {"USD": 100}, "history": []},
     "simulation_day_seconds": 86400,
     "signup_demo_grant": 10000,
     "session_timeout_minutes": 60,
@@ -174,9 +174,9 @@ async def security_event(kind, user_id=None, ip="", details=None, severity="info
 
 # ---------------- wallet / ledger (integer minor units) ----------------
 ACCOUNTS = {
-    "demo_coins": "Simulated demo coins",
-    "sim_earnings": "Hypothetical simulation earnings (non-withdrawable)",
-    "verified": "Verified payment balance (TEST MODE)",
+    "demo_coins": "Plan coins (no cash value)",
+    "sim_earnings": "Plan earnings (coins, not withdrawable)",
+    "verified": "USDT balance",
     "promo": "Promotional credits",
 }
 

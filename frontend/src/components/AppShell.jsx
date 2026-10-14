@@ -139,7 +139,6 @@ export default function AppShell({ items, area }) {
       <div className="flex-1 min-w-0 flex flex-col">
         <header className="sticky top-0 z-30 h-16 bg-[#070A12]/80 backdrop-blur-xl border-b border-slate-800/80 flex items-center gap-3 px-4 sm:px-6">
           <button className="lg:hidden p-2 -ml-2" onClick={() => setMobile(true)} data-testid="mobile-nav-toggle" aria-label="Open menu"><Menu className="w-5 h-5" /></button>
-          <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] uppercase tracking-widest px-2.5 py-1 rounded-full border border-violet-400/40 text-violet-200 bg-violet-500/10" data-testid="demo-mode-badge"><ShieldAlert className="w-3.5 h-3.5" />Demo mode</span>
           {area === "admin" && <span className="text-[11px] uppercase tracking-widest px-2.5 py-1 rounded-full border border-amber-400/40 text-amber-200">Super Admin</span>}
           <div className="flex-1" />
           <Link to={area === "admin" ? "/admin/campaigns" : "/app/notifications"} className="relative p-2 rounded-xl hover:bg-slate-800" data-testid="topbar-notifications-btn" aria-label="Notifications">

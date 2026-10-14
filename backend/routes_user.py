@@ -4,7 +4,11 @@ import io
 import csv
 import time
 import asyncio
+import secrets
 from datetime import timedelta, datetime
+
+import chain
+from pymongo.errors import DuplicateKeyError
 
 import cloudinary
 import cloudinary.api
@@ -85,7 +89,7 @@ async def calculate(b: CalcIn):
     total = daily * b.days
     return {"deposit": dep, "daily": daily, "days": b.days, "total_payout": total, "net_gain": total - dep,
             "simple_daily_rate_percent": round(daily / dep * 100, 3), "breakeven_day": -(-dep // daily) if daily else None,
-            "hypothetical": True, "note": "Illustrative arithmetic only: total = daily x days; net = total - deposit. Not a forecast or guarantee."}
+            "hypothetical": True, "note": "Calculation: total = daily x days; net = total - plan amount. Figures are in coins and are not guaranteed."}
 
 
 @router.get("/push/public-key")
@@ -182,7 +186,7 @@ async def enroll(plan_id: str, body: EnrollIn, user=Depends(get_current_user)):
            "daily": plan["daily"], "duration_days": plan["duration_days"], "days_credited": 0, "credited_total": 0, "status": "active",
            "started_at": iso(), "idem_key": f"{user['id']}:{body.idem_key}", "hypothetical": True, "created_at": iso()}
     await db.demo_plan_enrollments.insert_one(dict(doc))
-    await notify_user(user["id"], "Simulation started", f"{plan['name']} simulation is now active. All outputs are hypothetical.", kind="plan")
+    await notify_user(user["id"], "Plan started", f"{plan['name']} is now active.", kind="plan")
     return doc
 
 
@@ -286,7 +290,7 @@ async def commission_sim(b: CommSimIn, user=Depends(get_current_user)):
         total += val
         rows.append({"tier": tier + 1, "rank": rk, "rate_percent": bp / 100, "obligation": val})
     return {"amount": amt, "tiers": rows, "total_obligation": total, "obligation_percent": round(total / amt * 100, 3),
-            "educational": True, "note": "Educational simulation only. Each qualifying ancestor is calculated separately; obligations overlap and stack on the same deposit. No commissions are paid."}
+            "educational": True, "note": "Educational calculator. Each qualifying ancestor is calculated separately; obligations overlap and stack on the same amount. No commissions are paid."}
 
 
 # ---------------- uploads ----------------
@@ -317,8 +321,7 @@ async def verify_asset(public_id, folder_prefix, max_bytes=5 * 1024 * 1024):
 
 
 # ---------------- deposits ----------------
-REF_RULES = {"usdt_trc20": (r"^(0x)?[a-fA-F0-9]{64}$", "TRC20 transaction hash must be 64 hex characters"),
-             "usdt_bep20": (r"^0x[a-fA-F0-9]{64}$", "BEP20 transaction hash must be 0x followed by 64 hex characters")}
+OPEN_DEP = ["draft", "pending_verification"]
 
 
 @router.get("/payment-methods")
@@ -329,45 +332,85 @@ async def payment_methods(user=Depends(get_current_user)):
 class DepositIn(BaseModel):
     method_id: str
     amount: float = Field(gt=0)
+
+
+class DepositSubmitIn(BaseModel):
     reference: str = Field(min_length=6, max_length=80)
     evidence_public_id: str
     note: str | None = Field(default=None, max_length=300)
 
 
+DEP_PROJ = {"_id": 0, "reference_norm": 0}
+
+
 @router.post("/deposits")
-async def create_deposit(b: DepositIn, request: Request, user=Depends(get_current_user)):
+async def create_deposit(b: DepositIn, user=Depends(get_current_user)):
     await feature_on("deposits")
     await rate_limit(f"deposit:{user['id']}", 10, 3600)
     m = await db.payment_methods.find_one({"id": b.method_id, "active": True}, P0)
     if not m:
         raise HTTPException(400, "Payment method unavailable")
+    if not chain.valid_address(m["type"], m["address"]):
+        raise HTTPException(400, "This payment method is not configured yet. Please contact support.")
     amt = to_minor(b.amount)
     if amt < m["min_amount"] or amt > m["max_amount"]:
         raise HTTPException(400, f"Amount must be between {m['min_amount'] / 100:g} and {m['max_amount'] / 100:g}")
-    rule = REF_RULES.get(m["type"])
-    ref = b.reference.strip()
-    if rule and not re.match(rule[0], ref):
-        raise HTTPException(400, rule[1])
-    ref_norm = ref.lower()
-    if await db.payment_submissions.find_one({"method_type": m["type"], "reference_norm": ref_norm}):
-        await security_event("duplicate_payment_reference", user["id"], client_ip(request), {"reference": ref}, "warning")
-        raise HTTPException(409, "This payment reference has already been submitted")
-    ev = await verify_asset(b.evidence_public_id, f"users/{user['id']}/evidence/")
-    did = uid()
-    await db.payment_evidence.insert_one({"id": uid(), "submission_id": did, "user_id": user["id"], **ev, "created_at": iso()})
-    doc = {"id": did, "user_id": user["id"], "user_email": user["email"], "method_id": m["id"], "method_name": m["name"], "method_type": m["type"],
-           "network": m.get("network"), "amount": amt, "currency": m["currency"], "reference": ref, "reference_norm": ref_norm, "evidence_url": ev["secure_url"],
-           "status": "pending_verification", "status_note": "Awaiting independent verification. A screenshot alone does not prove payment.",
-           "test_mode": True, "note": strip_html(b.note), "history": [{"status": "submitted", "at": iso()}, {"status": "pending_verification", "at": iso()}], "created_at": iso()}
+    if await db.payment_submissions.count_documents({"user_id": user["id"], "status": "draft"}) >= 3:
+        raise HTTPException(400, "You already have 3 open deposit requests. Complete or wait for them to expire.")
+    dec = chain.DEC[chain.NET[m["type"]]]
+    for _ in range(30):
+        expected = amt * 10 ** (dec - 2) + (secrets.randbelow(9999) + 1) * 10 ** (dec - 4)
+        if not await db.payment_submissions.find_one({"method_type": m["type"], "expected_raw": str(expected), "status": {"$in": OPEN_DEP}}):
+            break
+    doc = {"id": uid(), "user_id": user["id"], "user_email": user["email"], "method_id": m["id"], "method_name": m["name"], "method_type": m["type"],
+           "network": m.get("network"), "address": m["address"], "amount": amt, "currency": "USDT", "expected_raw": str(expected),
+           "expected_display": chain.display_raw(m["type"], expected), "status": "draft",
+           "status_note": "Send the exact amount shown, then submit the transaction hash.", "expires_at": iso(now() + timedelta(hours=3)),
+           "history": [{"status": "draft", "at": iso()}], "created_at": iso()}
     await db.payment_submissions.insert_one(dict(doc))
-    await notify_user(user["id"], "Payment record submitted", f"Your {m['name']} submission ({ref}) is pending verification.", kind="payment", link="/app/deposit")
     return doc
+
+
+@router.post("/deposits/{did}/submit")
+async def submit_deposit(did: str, b: DepositSubmitIn, request: Request, user=Depends(get_current_user)):
+    d = await db.payment_submissions.find_one({"id": did, "user_id": user["id"]}, P0)
+    if not d or d["status"] != "draft":
+        raise HTTPException(400, "This deposit request is no longer open")
+    if d["expires_at"] < iso():
+        raise HTTPException(400, "This deposit request has expired. Create a new one.")
+    h = chain.norm_hash(d["method_type"], b.reference)
+    if not h:
+        raise HTTPException(400, "Transaction hash must be 64 hexadecimal characters (optionally starting with 0x)")
+    if await db.payment_submissions.find_one({"method_type": d["method_type"], "reference_norm": h}):
+        await security_event("duplicate_payment_reference", user["id"], client_ip(request), {"reference": h}, "warning")
+        raise HTTPException(409, "This transaction hash has already been submitted")
+    ev = await verify_asset(b.evidence_public_id, f"users/{user['id']}/evidence/")
+    await db.payment_evidence.insert_one({"id": uid(), "submission_id": did, "user_id": user["id"], **ev, "created_at": iso()})
+    try:
+        ok = await db.payment_submissions.find_one_and_update(
+            {"id": did, "status": "draft"},
+            {"$set": {"reference": b.reference.strip(), "reference_norm": h, "evidence_url": ev["secure_url"], "note": strip_html(b.note), "status": "pending_verification",
+                      "status_note": "Checking the blockchain…", "submitted_at": iso(), "next_check_at": iso()},
+             "$push": {"history": {"status": "pending_verification", "at": iso()}}})
+    except DuplicateKeyError:
+        raise HTTPException(409, "This transaction hash has already been submitted")
+    if not ok:
+        raise HTTPException(400, "This deposit request is no longer open")
+    return await chain.check_deposit(did)
+
+
+@router.post("/deposits/{did}/recheck")
+async def recheck_deposit(did: str, user=Depends(get_current_user)):
+    await rate_limit(f"deprecheck:{user['id']}", 20, 600)
+    if not await db.payment_submissions.find_one({"id": did, "user_id": user["id"]}, {"_id": 1}):
+        raise HTTPException(404, "Not found")
+    return await chain.check_deposit(did)
 
 
 @router.get("/deposits")
 async def my_deposits(page: int = 1, size: int = 20, user=Depends(get_current_user)):
     page, size = page_args(page, size)
-    return await paged(db.payment_submissions, {"user_id": user["id"]}, page, size, proj={"_id": 0, "reference_norm": 0})
+    return await paged(db.payment_submissions, {"user_id": user["id"]}, page, size, proj=DEP_PROJ)
 
 
 # ---------------- withdrawals ----------------
@@ -375,7 +418,7 @@ async def my_deposits(page: int = 1, size: int = 20, user=Depends(get_current_us
 async def withdrawal_info(user=Depends(get_current_user)):
     s = await get_settings()
     w = await wallets_of(user["id"])
-    return {"verified": w.get("verified"), "config": s["withdrawal"], "mobile_verified": user.get("mobile_verified", False),
+    return {"verified": w.get("verified"), "config": s["withdrawal"],
             "totp_enabled": user.get("totp_enabled", False), "enabled": s["features"].get("withdrawals", True)}
 
 
@@ -387,9 +430,6 @@ class WithdrawIn(BaseModel):
     totp_code: str | None = None
 
 
-DEST_RULES = {"usdt_trc20": r"^T[1-9A-HJ-NP-Za-km-z]{33}$", "usdt_bep20": r"^0x[a-fA-F0-9]{40}$"}
-
-
 @router.post("/withdrawals")
 async def create_withdrawal(b: WithdrawIn, user=Depends(get_current_user)):
     await feature_on("withdrawals")
@@ -399,8 +439,8 @@ async def create_withdrawal(b: WithdrawIn, user=Depends(get_current_user)):
         full = await db.users.find_one({"id": user["id"]})
         if not b.totp_code or not pyotp.TOTP(full["totp_secret"]).verify(b.totp_code, valid_window=1):
             raise HTTPException(400, "Valid 2FA code required")
-    if not re.fullmatch(DEST_RULES[b.destination_type], b.destination.strip()):
-        raise HTTPException(400, "Destination format is invalid")
+    if not chain.valid_address(b.destination_type, b.destination):
+        raise HTTPException(400, "Destination address is invalid for the selected network")
     cfg = s["withdrawal"]
     amt = to_minor(b.amount)
     if amt < cfg["min"] * 100 or amt > cfg["max"] * 100:
@@ -417,9 +457,9 @@ async def create_withdrawal(b: WithdrawIn, user=Depends(get_current_user)):
         await db.withdrawal_requests.delete_one({"id": wid})
         raise
     doc = {"user_email": user["email"], "amount": amt, "fee": fee, "net_amount": amt - fee, "destination_type": b.destination_type, "destination": b.destination.strip(),
-           "account": "verified", "test_mode": True, "history": [{"status": "submitted", "at": iso()}]}
+           "account": "verified", "currency": "USDT", "history": [{"status": "submitted", "at": iso()}]}
     await db.withdrawal_requests.update_one({"id": wid}, {"$set": doc})
-    await notify_user(user["id"], "Withdrawal request submitted", f"Request for {amt / 100:g} is under review. The amount is reserved.", kind="withdrawal", link="/app/withdraw")
+    await notify_user(user["id"], "Withdrawal request submitted", f"Request for {amt / 100:,.2f} USDT is under review. The amount is reserved.", kind="withdrawal", link="/app/withdraw")
     return await db.withdrawal_requests.find_one({"id": wid}, {"_id": 0, "open_lock": 0, "idem_key": 0})
 
 

@@ -117,9 +117,9 @@ function CommissionSim() {
   return (
     <div className="grid lg:grid-cols-[1fr_1.2fr] gap-5" data-testid="commission-sim">
       <Glass className="space-y-3">
-        <div className="flex items-center gap-2"><Calculator className="w-4 h-4 text-amber-400" /><h3 className="font-semibold text-white">Five-generation commission simulator</h3><DemoTag text="Educational" /></div>
-        <p className="text-xs text-slate-400">Model one hypothetical deposit and the rank of each ancestor above the depositor. No commissions are ever paid on this platform.</p>
-        <Field label="Hypothetical deposit"><Input className="inp font-num" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} data-testid="sim-amount-input" /></Field>
+        <div className="flex items-center gap-2"><Calculator className="w-4 h-4 text-amber-400" /><h3 className="font-semibold text-white">Five-generation commission calculator</h3></div>
+        <p className="text-xs text-slate-400">Model one example amount and the rank of each ancestor above the member. Educational calculator — no commissions are paid on this platform.</p>
+        <Field label="Example amount"><Input className="inp font-num" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} data-testid="sim-amount-input" /></Field>
         {ranks.map((r, i) => (
           <Field key={i} label={`Tier ${i + 1} ancestor rank`}><select className="w-full bg-slate-950/60 border border-slate-700 rounded-xl px-3 py-2 text-sm" value={r} data-testid={`sim-tier-${i + 1}`} onChange={(e) => setRanks(ranks.map((x, j) => (j === i ? e.target.value : x)))}>
             <option value="Member">Member (not qualified)</option>{RANKS.map((k) => <option key={k}>{k}</option>)}</select></Field>
@@ -136,7 +136,7 @@ function CommissionSim() {
             <Stat label="Share of deposit" value={`${res.obligation_percent}%`} testid="sim-percent" />
           </div>
           <p className="text-xs text-amber-200/90 mt-4 flex gap-2"><AlertTriangle className="w-4 h-4 shrink-0" />{res.note}</p>
-        </div>) : <Empty title="Run the simulator" text="See how each qualifying ancestor's percentage stacks on the same deposit." />}
+        </div>) : <Empty title="Run the calculator" text="See how each qualifying ancestor's percentage stacks on the same deposit." />}
       </Glass>
     </div>
   );
@@ -149,11 +149,11 @@ function Team() {
   if (s.error) return <ErrorBox error={errMsg(s.error)} />;
   return (
     <div data-testid="team-page">
-      <PageHeader title="My team network" subtitle="Five-generation referral structure, rank qualification and the educational commission simulator." />
+      <PageHeader title="My team network" subtitle="Five-generation referral structure, rank qualification and the commission calculator." />
       <Tabs defaultValue="summary">
         <TabsList className="bg-slate-900 flex-wrap h-auto mb-5">
           <TabsTrigger value="summary" data-testid="team-tab-summary">Summary & ranks</TabsTrigger><TabsTrigger value="tree" data-testid="team-tab-tree">Tree view</TabsTrigger>
-          <TabsTrigger value="table" data-testid="team-tab-table">Table view</TabsTrigger><TabsTrigger value="sim" data-testid="team-tab-sim">Commission simulator</TabsTrigger>
+          <TabsTrigger value="table" data-testid="team-tab-table">Table view</TabsTrigger><TabsTrigger value="sim" data-testid="team-tab-sim">Commission calculator</TabsTrigger>
         </TabsList>
         <TabsContent value="summary"><Summary s={s.data} /></TabsContent>
         <TabsContent value="tree"><Glass data-testid="team-tree">{tree.isLoading ? <Loader /> : tree.data.count ? <TreeView root={tree.data.root} /> : <Empty title="No team members yet" text="Share your referral link to start your network." />}</Glass></TabsContent>

@@ -24,8 +24,8 @@ function DashboardPreview() {
       <div className="absolute -inset-6 animated-gradient blur-3xl rounded-[2rem] opacity-70" />
       <div className="relative glass p-5 space-y-4">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-slate-400">Simulated balance</span>
-          <span className="text-[10px] uppercase tracking-widest px-2 py-0.5 rounded border border-violet-400/40 text-violet-300">Demo data</span>
+          <span className="text-xs text-slate-400">Balance</span>
+          
         </div>
         <p className="font-num text-3xl text-white">12,480.00 <span className="text-amber-400 text-base">DC</span></p>
         <div className="h-36">
@@ -52,7 +52,7 @@ export function Hero({ c }) {
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-16 sm:pt-24 pb-20 grid lg:grid-cols-[1.15fr_1fr] gap-14 items-center">
       <div>
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="eyebrow mb-5">Demo platform · simulated environment</motion.p>
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="eyebrow mb-5">USDT wallet · plans · team network</motion.p>
         <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-[1.05]" data-testid="hero-headline">
           {c?.headline || "One Platform. Complete Financial Account Management."}
         </motion.h1>
@@ -60,7 +60,7 @@ export function Hero({ c }) {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="flex flex-wrap gap-3 mt-8">
           <Link to="/register" className="btn-gold" data-testid="hero-create-account-btn">Create Account <Icons.ArrowRight className="w-4 h-4" /></Link>
           <a href="#benefits" className="btn-ghost" data-testid="hero-explore-btn">Explore Platform</a>
-          <a href="#plans" className="btn-ghost !text-violet-200 !border-violet-400/40" data-testid="hero-demo-plans-btn">View Demo Plans</a>
+          <a href="#plans" className="btn-ghost !text-violet-200 !border-violet-400/40" data-testid="hero-demo-plans-btn">View Plans</a>
         </motion.div>
         <div className="mt-8 flex gap-3 items-start rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 max-w-xl" data-testid="hero-disclaimer">
           <Icons.AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
@@ -97,7 +97,7 @@ export function Benefits({ items = [] }) {
 export function HowItWorks({ steps = [] }) {
   return (
     <section id="how" className="max-w-7xl mx-auto px-4 sm:px-6 py-20">
-      <SectionHead eyebrow="How it works" title="Six steps from sign-up to a fully simulated dashboard." />
+      <SectionHead eyebrow="How it works" title="Six steps from sign-up to a complete dashboard." />
       <div className="grid md:grid-cols-3 gap-5 relative">
         {steps.map((s, i) => (
           <Reveal key={s} delay={i * 0.07}>
@@ -118,7 +118,7 @@ const MARKET_ICONS = [Icons.Bitcoin, Icons.Globe2, Icons.Gem, Icons.IndianRupee,
 export function Trading({ items = [], risks = [] }) {
   return (
     <section id="markets" className="max-w-7xl mx-auto px-4 sm:px-6 py-20">
-      <SectionHead eyebrow="Trading information · educational" title="Five proposed market categories — and their real risks." text="These descriptions are educational. No trading activity produces consistent or guaranteed profits." />
+      <SectionHead eyebrow="Trading information" title="Five market categories — and their real risks." text="These descriptions are educational. No trading activity produces consistent or guaranteed profits." />
       <div className="grid lg:grid-cols-[1.4fr_1fr] gap-6">
         <div className="grid sm:grid-cols-2 gap-4">
           {items.map((m, i) => {

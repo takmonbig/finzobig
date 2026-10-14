@@ -12,12 +12,12 @@ import { Glass, PageHeader, Stat, Loader, Empty, ErrorBox, StatusBadge, Field, P
 import { get, sel } from "@/pages/admin/AdminCore";
 
 function ActionDialog({ target, actions, onClose, onDone, endpoint, needsConfirm }) {
-  const [f, setF] = useState({ action: "", note: "", confirmation_ref: "", independently_confirmed: false, payout_ref: "" });
+  const [f, setF] = useState({ action: "", note: "", payout_ref: "" });
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
   const submit = async () => {
     setBusy(true); setErr(null);
-    try { await api.post(`${endpoint}/${target.id}/action`, f); toast.success("Status updated"); onDone(); onClose(); } catch (e) { setErr(errMsg(e)); }
+    try { const r = await api.post(`${endpoint}/${target.id}/action`, f); toast.success(r.data.note || "Status updated"); onDone(); onClose(); } catch (e) { setErr(errMsg(e)); }
     setBusy(false);
   };
   return (
@@ -25,15 +25,12 @@ function ActionDialog({ target, actions, onClose, onDone, endpoint, needsConfirm
       <DialogContent className="bg-[#0C1120] border-amber-500/20 max-w-lg max-h-[88vh] overflow-y-auto" data-testid="review-dialog">
         <DialogHeader><DialogTitle>Review {target?.user_email}</DialogTitle></DialogHeader>
         {target?.evidence_url && <a href={target.evidence_url} target="_blank" rel="noopener noreferrer"><img src={target.evidence_url} alt="Payment evidence" className="max-h-64 rounded-xl mx-auto" data-testid="review-evidence" /></a>}
-        <p className="text-sm">Amount <span className="font-num text-white">{coins(target?.amount)}</span> · {target?.reference || target?.destination}</p>
+        <p className="text-sm">Amount <span className="font-num text-white">{target?.expected_display || coins(target?.amount)} USDT</span> · <span className="font-num text-xs break-all">{target?.reference || target?.destination}</span></p>
+        {target?.status_note && <p className="text-xs text-slate-400">{target.status_note}</p>}
         <div className="flex flex-wrap gap-2">{actions(target).map((a) => <button key={a} onClick={() => setF({ ...f, action: a })} data-testid={`review-action-${a}`}
           className={`px-3 py-1.5 rounded-lg text-sm border ${f.action === a ? "border-amber-400 bg-amber-500/10 text-amber-200" : "border-slate-700"}`}>{a.replace("_", " ")}</button>)}</div>
-        {f.action === "verify" && needsConfirm && (<div className="space-y-2 rounded-xl border border-amber-500/30 p-3">
-          <p className="text-xs text-amber-200 flex gap-2"><AlertTriangle className="w-4 h-4 shrink-0" />A screenshot is not proof. Confirm against the bank statement or blockchain explorer first.</p>
-          <Input className="inp font-num" placeholder="Independent confirmation reference" value={f.confirmation_ref} onChange={(e) => setF({ ...f, confirmation_ref: e.target.value })} data-testid="review-confirmation-ref" />
-          <label className="flex gap-2 text-sm"><input type="checkbox" className="accent-amber-500" checked={f.independently_confirmed} onChange={(e) => setF({ ...f, independently_confirmed: e.target.checked })} data-testid="review-confirmed-checkbox" />I independently confirmed this payment</label>
-        </div>)}
-        {f.action === "completed" && <Input className="inp font-num" placeholder="Payout reference" value={f.payout_ref} onChange={(e) => setF({ ...f, payout_ref: e.target.value })} data-testid="review-payout-ref" />}
+        {f.action === "credit_onchain" && <p className="text-xs text-amber-200 flex gap-2"><AlertTriangle className="w-4 h-4 shrink-0" />Credits the actual on-chain amount received at the deposit address in this transaction, even if it differs from the requested amount.</p>}
+        {f.action === "completed" && <Input className="inp font-num" placeholder="Payout transaction hash (verified on-chain)" value={f.payout_ref} onChange={(e) => setF({ ...f, payout_ref: e.target.value })} data-testid="review-payout-ref" />}
         <Textarea className="inp" placeholder="Note shown to the user (required)" value={f.note} onChange={(e) => setF({ ...f, note: e.target.value })} data-testid="review-note-input" />
         <ErrorBox error={err} />
         <button className="btn-gold" disabled={!f.action || f.note.length < 3 || busy} onClick={submit} data-testid="review-submit-btn">Apply</button>
@@ -50,13 +47,13 @@ function Records({ kind }) {
   const [target, setTarget] = useState(null);
   const { data, isLoading } = useQuery({ queryKey: ["admin-" + kind, status, page, q], queryFn: () => get(`/admin/${kind}`, { status, page, q }) });
   const dep = kind === "deposits";
-  const statuses = dep ? ["pending_verification", "verified", "rejected", "refunded", "failed"] : ["submitted", "under_review", "approved", "processing", "completed", "rejected", "cancelled"];
-  const DEP_ACT = { pending_verification: ["verify", "reject", "fail"], verified: ["refund"] };
+  const statuses = dep ? ["draft", "pending_verification", "verified", "rejected", "refunded", "failed"] : ["submitted", "under_review", "approved", "processing", "completed", "rejected", "cancelled"];
+  const DEP_ACT = { draft: ["reject"], pending_verification: ["recheck", "credit_onchain", "reject"], failed: ["credit_onchain", "reject"], verified: ["refund"] };
   const WD_ACT = { submitted: ["under_review", "rejected"], under_review: ["approved", "rejected"], approved: ["processing", "rejected"], processing: ["completed"] };
   const acts = (t) => ((dep ? DEP_ACT : WD_ACT)[t?.status] || []);
   return (
     <div data-testid={`admin-${kind}-page`}>
-      <PageHeader title={dep ? "Deposit verification" : "Withdrawal review"} subtitle={dep ? "TEST MODE. Verification requires an independent confirmation reference; verified records credit a separate test balance only." : "Amounts are reserved at request time. Completion debits the reserved test balance; rejection releases it."} />
+      <PageHeader title={dep ? "Deposit verification" : "Withdrawal review"} subtitle={dep ? "Deposits are confirmed automatically on-chain. Re-check pending ones, or credit the actual on-chain amount when a user sent a different amount." : "Amounts are reserved at request time. Send the payout from your wallet, then complete with the transaction hash — it is verified on-chain before the balance is debited."} />
       <Glass>
         <div className="flex flex-wrap gap-2 mb-4">
           <select className={sel} value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} data-testid={`${kind}-status-filter`}><option value="">All statuses</option>{statuses.map((s) => <option key={s}>{s}</option>)}</select>
@@ -87,7 +84,7 @@ function Methods() {
   const open = (m) => { setErr(null); setEdit(m ? { ...m, min_amount: m.min_amount / 100, max_amount: m.max_amount / 100, qr_public_id: null } : { ...EMPTY_M }); };
   return (
     <div data-testid="admin-methods-page">
-      <PageHeader title="Payment methods" subtitle="All methods operate in TEST MODE." actions={<button className="btn-gold" onClick={() => open(null)} data-testid="add-method-btn"><Plus className="w-4 h-4" />Add method</button>} />
+      <PageHeader title="Payment methods" subtitle="Receiving addresses for USDT TRC20 and BEP20. Addresses are validated for the selected network." actions={<button className="btn-gold" onClick={() => open(null)} data-testid="add-method-btn"><Plus className="w-4 h-4" />Add method</button>} />
       {isLoading ? <Loader /> : <div className="grid md:grid-cols-3 gap-4">{data.map((m) => (
         <Glass key={m.id} data-testid={`admin-method-${m.type}`}>
           <div className="flex justify-between items-start"><div><p className="text-white font-semibold">{m.name}</p><p className="text-xs text-slate-500">{m.network} · {m.currency}</p></div><StatusBadge status={m.active ? "active" : "disabled"} /></div>
@@ -132,7 +129,7 @@ function FinanceAdmin() {
       <Tabs defaultValue="liability"><TabsList className="bg-slate-900 mb-4 flex-wrap h-auto"><TabsTrigger value="liability" data-testid="fin-tab-liability">Liability analysis</TabsTrigger><TabsTrigger value="ledger" data-testid="fin-tab-ledger">Ledger report</TabsTrigger><TabsTrigger value="recon" data-testid="fin-tab-recon">Reconciliation & exceptions</TabsTrigger></TabsList>
         <TabsContent value="liability">{lia.isLoading ? <Loader /> : <div className="space-y-4" data-testid="liability-panel">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <Stat label="Hypothetical deposits" value={coins(lia.data.hypothetical_deposits)} testid="lia-deposits" /><Stat label="Plan payout obligations" value={coins(lia.data.plan_payout_obligations)} tone="blue" testid="lia-plan" />
+            <Stat label="Plan amounts (coins)" value={coins(lia.data.hypothetical_deposits)} testid="lia-deposits" /><Stat label="Plan payout obligations" value={coins(lia.data.plan_payout_obligations)} tone="blue" testid="lia-plan" />
             <Stat label="5-tier commission obligations" value={coins(lia.data.commission_obligations)} tone="violet" testid="lia-commission" /><Stat label="Total obligations" value={coins(lia.data.total_obligations)} tone="emerald" testid="lia-total" />
           </div>
           <Glass><p className="text-sm">Coverage ratio (deposits ÷ obligations): <span className="font-num text-amber-300" data-testid="lia-coverage">{lia.data.coverage_ratio ?? "—"}</span> · Shortfall: <span className="font-num text-red-300" data-testid="lia-shortfall">{coins(lia.data.shortfall)}</span></p>

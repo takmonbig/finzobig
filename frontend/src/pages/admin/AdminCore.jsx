@@ -28,7 +28,7 @@ function Overview() {
         <Stat label="Pending deposit records" value={d.pending_deposits} icon={ArrowDownToLine} testid="ad-pending-deposits" hint={`${d.verified_deposits} verified`} />
         <Stat label="Pending withdrawals" value={d.pending_withdrawals} icon={ArrowUpFromLine} tone="blue" testid="ad-pending-withdrawals" />
         <Stat label="Open support tickets" value={d.open_tickets} icon={LifeBuoy} tone="violet" testid="ad-open-tickets" /><Stat label="Push subscriptions" value={d.push_subscriptions} icon={BellRing} tone="emerald" testid="ad-push-subs" />
-        <Stat label="Reward requests" value={d.reward_requests} icon={Gift} testid="ad-reward-requests" /><Stat label="Active simulations" value={d.active_enrollments} icon={Layers} tone="blue" testid="ad-active-sims" />
+        <Stat label="Reward requests" value={d.reward_requests} icon={Gift} testid="ad-reward-requests" /><Stat label="Active plans" value={d.active_enrollments} icon={Layers} tone="blue" testid="ad-active-sims" />
         <Stat label="Suspended accounts" value={d.suspended} icon={ShieldAlert} tone="violet" testid="ad-suspended" />
       </div>
       <div className="grid lg:grid-cols-2 gap-5 mt-6">
@@ -67,12 +67,12 @@ function UserDetail({ id, onClose }) {
             <Field label="Group"><Input className="inp" defaultValue={u.group} onBlur={(e) => e.target.value !== u.group && patch({ group: e.target.value })} data-testid="ud-group-input" /></Field>
             <label className="flex items-center gap-2 text-sm pb-2">Messaging disabled <Switch checked={!!u.messaging_disabled} onCheckedChange={(v) => patch({ messaging_disabled: v })} data-testid="ud-messaging-switch" /></label>
           </div>
-          <div className="border-t border-slate-800 pt-3"><p className="text-sm font-semibold text-white mb-2">Ledger adjustment (demo / promo only)</p>
+          <div className="border-t border-slate-800 pt-3"><p className="text-sm font-semibold text-white mb-2">Ledger adjustment (coins / promo only)</p>
             <div className="grid sm:grid-cols-[130px_120px_1fr_auto] gap-2"><select className={sel} value={adj.account} onChange={(e) => setAdj({ ...adj, account: e.target.value })} data-testid="ud-adj-account"><option>demo_coins</option><option>promo</option></select>
               <Input className="inp font-num" type="number" placeholder="+/- amount" value={adj.amount} onChange={(e) => setAdj({ ...adj, amount: e.target.value })} data-testid="ud-adj-amount" />
               <Input className="inp" placeholder="Reason (audited)" value={adj.memo} onChange={(e) => setAdj({ ...adj, memo: e.target.value })} data-testid="ud-adj-memo" />
               <button className="btn-gold !py-2" disabled={!adj.amount || adj.memo.length < 3} onClick={adjust} data-testid="ud-adj-btn">Post</button></div></div>
-          <Tabs defaultValue="dep"><TabsList className="bg-slate-900"><TabsTrigger value="dep">Deposits</TabsTrigger><TabsTrigger value="wd">Withdrawals</TabsTrigger><TabsTrigger value="en">Simulations</TabsTrigger><TabsTrigger value="rk">Rank history</TabsTrigger></TabsList>
+          <Tabs defaultValue="dep"><TabsList className="bg-slate-900"><TabsTrigger value="dep">Deposits</TabsTrigger><TabsTrigger value="wd">Withdrawals</TabsTrigger><TabsTrigger value="en">Plans</TabsTrigger><TabsTrigger value="rk">Rank history</TabsTrigger></TabsList>
             <TabsContent value="dep">{data.deposits.map((d) => <p key={d.id} className="text-xs py-1 border-b border-slate-800">{fdate(d.created_at)} · {d.method_name} · {coins(d.amount)} · <StatusBadge status={d.status} /></p>)}</TabsContent>
             <TabsContent value="wd">{data.withdrawals.map((d) => <p key={d.id} className="text-xs py-1 border-b border-slate-800">{fdate(d.created_at)} · {coins(d.amount)} · <StatusBadge status={d.status} /></p>)}</TabsContent>
             <TabsContent value="en">{data.enrollments.map((d) => <p key={d.id} className="text-xs py-1 border-b border-slate-800">{d.plan_name} · {coins(d.amount)} · {d.days_credited}/{d.duration_days} · <StatusBadge status={d.status} /></p>)}</TabsContent>
@@ -190,7 +190,7 @@ function Logs() {
         <TabsContent value="sec"><Glass>{sec.data?.items.length ? <table className="tbl"><thead><tr><th>Time</th><th>Type</th><th>Severity</th><th>IP</th><th>Details</th></tr></thead>
           <tbody>{sec.data.items.map((a) => <tr key={a.id}><td className="whitespace-nowrap">{fdate(a.created_at)}</td><td>{a.type}</td><td>{a.severity}</td><td className="font-num text-xs">{a.ip}</td><td className="text-xs font-num break-all">{JSON.stringify(a.details)}</td></tr>)}</tbody></table> : <Empty />}
           {sec.data && <Pager page={sp} size={30} total={sec.data.total} onPage={setSp} />}</Glass></TabsContent>
-        <TabsContent value="mail"><Glass><p className="text-xs text-violet-300 mb-3">Email delivery is MOCKED. Messages are stored here instead of being sent.</p>
+        <TabsContent value="mail"><Glass><p className="text-xs text-violet-300 mb-3">Email delivery is not connected yet. Messages are stored here instead of being sent.</p>
           {out.data?.length ? out.data.map((m) => <div key={m.id} className="py-2 border-b border-slate-800 text-sm"><p>{m.to} · {m.subject} · <span className="text-xs text-slate-500">{fdate(m.created_at)}</span></p><p className="text-xs font-num text-slate-400 break-all" data-testid="outbox-body">{m.body}</p></div>) : <Empty />}</Glass></TabsContent>
       </Tabs>
     </div>

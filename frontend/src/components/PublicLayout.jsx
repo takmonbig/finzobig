@@ -63,7 +63,7 @@ function Footer({ site }) {
         </div>
       </div>
       <div className="border-t border-slate-800/70 py-5 px-4 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
-        <ShieldAlert className="w-3.5 h-3.5 text-amber-500" /> DEMO MODE · simulated coins and hypothetical figures only · © {new Date().getFullYear()} {s.site_name}
+        © {new Date().getFullYear()} {s.site_name}
       </div>
     </footer>
   );

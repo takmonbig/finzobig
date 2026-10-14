@@ -14,6 +14,8 @@ from core import (db, iso, now, uid, client_ip, require_admin, audit, get_settin
                   RANKS, COMMISSION, team_counts, recompute_rank, safe_url, strip_html, notify_user, ACCOUNTS, clean, rank_for)
 from routes_user import paged, page_args, verify_asset, P0, team_volume
 from jobs import run_simulation, dispatch_campaign, resolve_audience
+import chain
+from datetime import datetime
 
 router = APIRouter(prefix="/api/admin")
 UPROJ = {"_id": 0, "password_hash": 0, "totp_secret": 0, "totp_pending": 0}
@@ -211,29 +213,37 @@ async def deposits(status: str = "", q: str = "", page: int = 1, size: int = 20,
 
 
 class DepActIn(BaseModel):
-    action: str = Field(pattern=r"^(verify|reject|refund|fail)$")
+    action: str = Field(pattern=r"^(recheck|credit_onchain|reject|refund)$")
     note: str = Field(min_length=3, max_length=500)
-    confirmation_ref: str | None = None
-    independently_confirmed: bool = False
 
 
 @router.post("/deposits/{did}/action")
 async def deposit_action(did: str, b: DepActIn, request: Request, admin=Depends(require_admin)):
-    allowed = {"verify": ["pending_verification"], "reject": ["pending_verification"], "fail": ["pending_verification"], "refund": ["verified"]}
-    new = {"verify": "verified", "reject": "rejected", "fail": "failed", "refund": "refunded"}[b.action]
-    if b.action == "verify" and (not b.independently_confirmed or not b.confirmation_ref or len(b.confirmation_ref) < 6):
-        raise HTTPException(400, "Verification requires independent confirmation (bank statement / blockchain explorer reference). A screenshot alone is not proof of payment.")
-    d = await db.payment_submissions.find_one_and_update({"id": did, "status": {"$in": allowed[b.action]}},
-                                                         {"$set": {"status": new, "status_note": strip_html(b.note), "reviewed_by": admin["email"], "reviewed_at": iso(), "confirmation_ref": b.confirmation_ref},
+    d0 = await db.payment_submissions.find_one({"id": did}, P0)
+    if not d0:
+        raise HTTPException(404, "Not found")
+    if b.action in ("recheck", "credit_onchain"):
+        if b.action == "recheck" and d0["status"] != "pending_verification":
+            raise HTTPException(400, "Only pending deposits can be re-checked")
+        if b.action == "credit_onchain" and (d0["status"] not in ("pending_verification", "failed") or not d0.get("reference_norm")):
+            raise HTTPException(400, "Only submitted pending or failed deposits can be credited from the blockchain")
+        d = await chain.check_deposit(did, admin_credit=b.action == "credit_onchain")
+        await audit(admin, f"deposit.{b.action}", "payment_submission", did, {"note": b.note, "result": d["status"]}, client_ip(request))
+        if b.action == "credit_onchain" and d["status"] != "verified":
+            raise HTTPException(400, f"Not credited: {d['status_note']}")
+        return {"ok": True, "status": d["status"], "note": d["status_note"]}
+    allowed = {"reject": ["draft", "pending_verification", "failed"], "refund": ["verified"]}[b.action]
+    new = {"reject": "rejected", "refund": "refunded"}[b.action]
+    d = await db.payment_submissions.find_one_and_update({"id": did, "status": {"$in": allowed}},
+                                                         {"$set": {"status": new, "status_note": strip_html(b.note), "reviewed_by": admin["email"], "reviewed_at": iso()},
                                                           "$push": {"history": {"status": new, "at": iso(), "by": admin["email"], "note": strip_html(b.note)}}})
     if not d:
         raise HTTPException(400, "Invalid status transition")
-    if b.action == "verify":
-        await post_ledger(d["user_id"], "verified", d["amount"], "deposit_verified", f"TEST MODE verified record {d['reference']}", ref=did, idem_key=f"dep:{did}")
-    elif b.action == "refund":
-        await post_ledger(d["user_id"], "verified", -d["amount"], "deposit_refund_reversal", f"Reversal for refunded record {d['reference']}", ref=did, idem_key=f"depref:{did}")
-    await audit(admin, f"deposit.{b.action}", "payment_submission", did, {"note": b.note, "confirmation_ref": b.confirmation_ref}, client_ip(request))
-    await notify_user(d["user_id"], f"Payment record {new}", f"Your submission {d['reference']} is now {new}. Note: {strip_html(b.note)}", kind="payment", link="/app/deposit")
+    if b.action == "refund":
+        amt = d.get("credited_amount", d["amount"])
+        await post_ledger(d["user_id"], "verified", -amt, "deposit_refund_reversal", f"Reversal for refunded deposit {d.get('reference', '')[:12]}", ref=did, idem_key=f"depref:{did}")
+    await audit(admin, f"deposit.{b.action}", "payment_submission", did, {"note": b.note}, client_ip(request))
+    await notify_user(d["user_id"], f"Deposit {new}", f"Your deposit request is now {new}. Note: {strip_html(b.note)}", kind="payment", link="/app/deposit")
     return {"ok": True, "status": new}
 
 
@@ -255,9 +265,32 @@ WD_FLOW = {"under_review": ["submitted"], "approved": ["under_review"], "process
 
 @router.post("/withdrawals/{wid}/action")
 async def withdrawal_action(wid: str, b: WdActIn, request: Request, admin=Depends(require_admin)):
-    if b.action == "completed" and not b.payout_ref:
-        raise HTTPException(400, "Payout reference required to complete")
-    upd = {"$set": {"status": b.action, "status_note": strip_html(b.note), "reviewed_by": admin["email"], "payout_ref": b.payout_ref},
+    extra = {}
+    if b.action == "completed":
+        w0 = await db.withdrawal_requests.find_one({"id": wid, "status": "processing"}, P0)
+        if not w0:
+            raise HTTPException(400, "Invalid status transition")
+        h = chain.norm_hash(w0["destination_type"], b.payout_ref)
+        if not h:
+            raise HTTPException(400, "Payout transaction hash must be 64 hexadecimal characters")
+        if await db.withdrawal_requests.find_one({"payout_ref_norm": h}, {"_id": 1}):
+            raise HTTPException(409, "This payout transaction is already linked to another withdrawal")
+        try:
+            r = await chain.find_transfer(w0["destination_type"], h, w0["destination"], chain.raw_units(w0["destination_type"], w0["net_amount"]))
+        except chain.ChainError:
+            raise HTTPException(503, "Blockchain lookup unavailable. Try again shortly.")
+        if r["state"] == "not_found":
+            raise HTTPException(400, "Payout transaction not found on-chain yet")
+        if r["state"] == "failed":
+            raise HTTPException(400, "Payout transaction failed on-chain")
+        if not r["match"]:
+            raise HTTPException(400, f"No USDT transfer of exactly {w0['net_amount'] / 100:,.2f} to the user's destination was found in this transaction")
+        if r["timestamp"] < datetime.fromisoformat(w0["created_at"]).timestamp() - 600:
+            raise HTTPException(400, "This transaction was made before the withdrawal request")
+        if r["state"] == "pending":
+            raise HTTPException(400, f"Payout is still confirming ({r['confirmations']}/{r['required']}). Try again shortly.")
+        extra = {"payout_ref_norm": h, "payout_confirmations": r["confirmations"]}
+    upd = {"$set": {"status": b.action, "status_note": strip_html(b.note), "reviewed_by": admin["email"], "payout_ref": b.payout_ref, **extra},
            "$push": {"history": {"status": b.action, "at": iso(), "by": admin["email"], "note": strip_html(b.note)}}}
     if b.action in ("completed", "rejected"):
         upd["$unset"] = {"open_lock": ""}
@@ -265,7 +298,7 @@ async def withdrawal_action(wid: str, b: WdActIn, request: Request, admin=Depend
     if not w:
         raise HTTPException(400, "Invalid status transition")
     if b.action == "completed":
-        await post_ledger(w["user_id"], "verified", -w["amount"], "withdrawal_completed", f"TEST MODE withdrawal {b.payout_ref}", ref=wid, idem_key=f"wd:{wid}", reserved_delta=-w["amount"])
+        await post_ledger(w["user_id"], "verified", -w["amount"], "withdrawal_completed", f"USDT withdrawal {b.payout_ref[:12]}… (on-chain confirmed)", ref=wid, idem_key=f"wd:{wid}", reserved_delta=-w["amount"])
     elif b.action == "rejected":
         await release(w["user_id"], "verified", w["amount"])
     await audit(admin, f"withdrawal.{b.action}", "withdrawal_request", wid, {"note": b.note, "payout_ref": b.payout_ref}, client_ip(request))
@@ -291,6 +324,9 @@ class MethodIn(BaseModel):
 async def method_doc(b: MethodIn):
     d = b.model_dump()
     d["instructions"] = strip_html(d["instructions"])
+    d["address"] = d["address"].strip()
+    if not chain.valid_address(b.type, d["address"]):
+        raise HTTPException(400, "Wallet address is not a valid address for this network")
     d["min_amount"], d["max_amount"] = to_minor(b.min_amount), to_minor(b.max_amount)
     if d["min_amount"] >= d["max_amount"]:
         raise HTTPException(400, "Minimum must be less than maximum")
@@ -600,7 +636,7 @@ async def liability(admin=Depends(require_admin)):
     total = plan_obl + comm
     return {"hypothetical_deposits": deposits, "plan_payout_obligations": plan_obl, "commission_obligations": comm, "tier_obligations": tiers,
             "total_obligations": total, "coverage_ratio": round(deposits / total, 4) if total else None, "shortfall": max(total - deposits, 0), "enrollments": len(ens),
-            "note": "Simulated obligations. If obligations exceed deposits, the structure is unsustainable without external revenue."}
+            "note": "Plan and commission obligations in coins. If obligations exceed plan amounts, the structure is unsustainable without external revenue."}
 
 
 # ---------------- ledger ----------------
@@ -704,13 +740,13 @@ async def update_settings(body: dict, request: Request, admin=Depends(require_ad
         hist = s["coin"].get("history", [])
         if c.get("rates") != s["coin"].get("rates"):
             hist = hist + [{"rates": s["coin"].get("rates"), "changed_to": c.get("rates"), "by": admin["email"], "at": iso()}]
-        upd["coin"] = {"name": strip_html(c.get("name", "Demo Coin")), "symbol": strip_html(c.get("symbol", "DC"))[:6], "decimals": int(c.get("decimals", 2)),
+        upd["coin"] = {"name": strip_html(c.get("name", "Finzo Coin")), "symbol": strip_html(c.get("symbol", "FZC"))[:6], "decimals": int(c.get("decimals", 2)),
                        "rates": {k: float(v) for k, v in c.get("rates", {}).items()}, "history": hist}
     for k in ("logo_url", "favicon_url"):
         if upd.get(k):
             upd[k] = safe_url(upd[k])
     if "simulation_day_seconds" in upd and int(upd["simulation_day_seconds"]) < 60:
-        raise HTTPException(400, "Simulation day must be at least 60 seconds")
+        raise HTTPException(400, "Plan day must be at least 60 seconds")
     await db.system_settings.update_one({"key": "global"}, {"$set": upd})
     bust_settings()
     await audit(admin, "settings.update", "system_settings", "global", {"keys": list(upd)}, client_ip(request))

@@ -38,13 +38,13 @@ async def run_simulation():
                                                                   "amount": e["daily"], "hypothetical": True, "created_at": iso()})
                 except DuplicateKeyError:
                     continue
-                await post_ledger(e["user_id"], "sim_earnings", e["daily"], "simulation_accrual", f"Hypothetical day {day} — {e['plan_name']}", ref=e["id"], idem_key=f"sim:{e['id']}:{day}")
+                await post_ledger(e["user_id"], "sim_earnings", e["daily"], "simulation_accrual", f"Day {day} — {e['plan_name']}", ref=e["id"], idem_key=f"sim:{e['id']}:{day}")
                 created += 1
             if target > e["days_credited"]:
                 done = target >= e["duration_days"]
                 await db.demo_plan_enrollments.update_one({"id": e["id"]}, {"$set": {"days_credited": target, "credited_total": target * e["daily"], "status": "completed" if done else "active"}})
                 if done:
-                    await notify_user(e["user_id"], "Simulation completed", f"{e['plan_name']} simulation finished. All values were hypothetical.", kind="plan")
+                    await notify_user(e["user_id"], "Plan completed", f"{e['plan_name']} has finished its term.", kind="plan")
     finally:
         await release_lock("simulation")
     return {"entries_created": created}
@@ -111,6 +111,8 @@ async def scheduler_loop():
         try:
             await run_simulation()
             await dispatch_due()
+            from chain import recheck_deposits
+            await recheck_deposits()
         except Exception as e:
             log.exception(f"scheduler error: {e}")
         await asyncio.sleep(30)

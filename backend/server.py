@@ -17,7 +17,7 @@ from jobs import scheduler_loop
 from seed_data import PLANS, PLAN_NAMES, REWARDS, reward_extra, METHODS, CONTENT
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-app = FastAPI(title="Financial Participation Management Platform (DEMO)")
+app = FastAPI(title="Finzo.cc API")
 app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(admin_router)
@@ -26,7 +26,7 @@ app.add_middleware(CORSMiddleware, allow_credentials=True, allow_origins=os.envi
 
 @app.get("/api/health")
 async def health():
-    return {"ok": True, "demo_mode": True}
+    return {"ok": True}
 
 
 @app.websocket("/api/ws")
@@ -64,7 +64,12 @@ async def create_indexes():
     await db.ledger_transactions.create_index([("user_id", 1), ("created_at", -1)])
     await db.demo_calculation_entries.create_index([("enrollment_id", 1), ("day_index", 1)], unique=True)
     await db.demo_plan_enrollments.create_index("idem_key", unique=True)
-    await db.payment_submissions.create_index([("method_type", 1), ("reference_norm", 1)], unique=True)
+    idx = await db.payment_submissions.index_information()
+    if "method_type_1_reference_norm_1" in idx and "partialFilterExpression" not in idx["method_type_1_reference_norm_1"]:
+        await db.payment_submissions.drop_index("method_type_1_reference_norm_1")
+    await db.payment_submissions.create_index([("method_type", 1), ("reference_norm", 1)], unique=True, partialFilterExpression={"reference_norm": {"$type": "string"}})
+    await db.payment_submissions.create_index([("status", 1), ("next_check_at", 1)])
+    await db.withdrawal_requests.create_index("payout_ref_norm", unique=True, partialFilterExpression={"payout_ref_norm": {"$type": "string"}})
     await db.withdrawal_requests.create_index("open_lock", unique=True, sparse=True)
     await db.withdrawal_requests.create_index("idem_key", unique=True, sparse=True)
     await db.push_subscriptions.create_index("endpoint", unique=True)
@@ -93,7 +98,7 @@ async def seed_user(email, password, name, role="user", referrer=None, mobile="9
     await ensure_wallets(user["id"])
     if role == "user":
         s = await get_settings()
-        await post_ledger(user["id"], "demo_coins", int(s["signup_demo_grant"]) * 100, "signup_grant", "Welcome demo coins (simulated)", idem_key=f"grant:{user['id']}")
+        await post_ledger(user["id"], "demo_coins", int(s["signup_demo_grant"]) * 100, "signup_grant", "Welcome coins", idem_key=f"grant:{user['id']}")
         if referrer:
             await db.referral_relationships.insert_one({"id": uid(), "user_id": user["id"], "referrer_id": referrer["id"], "ancestors": ancestors, "created_at": iso()})
         await recompute_ancestors(user)

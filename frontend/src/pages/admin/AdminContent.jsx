@@ -26,8 +26,8 @@ function Plans() {
   };
   return (
     <div data-testid="admin-plans-page">
-      <PageHeader title="Demonstration plans" subtitle="Editing a plan archives the current version and creates a new one. Existing simulations keep their original terms."
-        actions={<><button className="btn-ghost" onClick={() => save(api.post("/admin/simulation/run"))} data-testid="run-simulation-btn"><Play className="w-4 h-4" />Run simulation engine now</button>
+      <PageHeader title="Participation plans" subtitle="Editing a plan archives the current version and creates a new one. Existing enrollments keep their original terms."
+        actions={<><button className="btn-ghost" onClick={() => save(api.post("/admin/simulation/run"))} data-testid="run-simulation-btn"><Play className="w-4 h-4" />Run daily plan engine now</button>
           <button className="btn-gold" onClick={() => setEdit({ name: "", description: "", deposit: 100, daily: 5, duration_days: 30, payout_schedule: "daily", active: true })} data-testid="add-plan-btn"><Plus className="w-4 h-4" />Add plan</button></>} />
       <Glass>{isLoading ? <Loader /> : <div className="overflow-x-auto"><table className="tbl" data-testid="admin-plans-table"><thead><tr><th>Name</th><th>Ver.</th><th>Deposit</th><th>Daily</th><th>Days</th><th>Total</th><th>Schedule</th><th>Status</th><th /></tr></thead>
         <tbody>{data.map((p) => <tr key={p.id} className={p.archived ? "opacity-50" : ""}><td className="text-white">{p.name}</td><td className="font-num">v{p.version}</td><td className="font-num">{coins(p.deposit)}</td><td className="font-num">{coins(p.daily)}</td><td className="font-num">{p.duration_days}</td><td className="font-num">{coins(p.total_payout)}</td><td>{p.payout_schedule}</td>
@@ -39,7 +39,7 @@ function Plans() {
           {edit && <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2"><Field label="Name"><Input className="inp" value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} data-testid="plan-name-input" /></Field></div>
             <div className="col-span-2"><Field label="Description"><Textarea className="inp" value={edit.description} onChange={(e) => setEdit({ ...edit, description: e.target.value })} data-testid="plan-desc-input" /></Field></div>
-            {[["deposit", "Simulated deposit"], ["daily", "Daily simulated amount"], ["duration_days", "Duration (days)"]].map(([k, l]) => <Field key={k} label={l}><Input className="inp font-num" type="number" value={edit[k]} onChange={(e) => setEdit({ ...edit, [k]: e.target.value })} data-testid={`plan-${k}-input`} /></Field>)}
+            {[["deposit", "Plan amount (coins)"], ["daily", "Daily amount (coins)"], ["duration_days", "Duration (days)"]].map(([k, l]) => <Field key={k} label={l}><Input className="inp font-num" type="number" value={edit[k]} onChange={(e) => setEdit({ ...edit, [k]: e.target.value })} data-testid={`plan-${k}-input`} /></Field>)}
             <Field label="Payout schedule"><select className={sel + " w-full"} value={edit.payout_schedule} onChange={(e) => setEdit({ ...edit, payout_schedule: e.target.value })} data-testid="plan-schedule-select"><option value="daily">daily</option><option value="weekly">weekly</option><option value="end_of_term">end_of_term</option></select></Field>
             <label className="flex items-center gap-2 text-sm">Active <Switch checked={edit.active} onCheckedChange={(v) => setEdit({ ...edit, active: v })} /></label>
           </div>}
@@ -69,7 +69,7 @@ function Rewards() {
     : { title: "", slug: "", category: "", description: "", milestone: 100000, inventory: 1, faqs: [], image_url: "", active: true, _rules: "", _elig: "", _terms: "", _red: "" });
   return (
     <div data-testid="admin-rewards-page">
-      <PageHeader title="Rewards & claims" subtitle="Reward concepts are unapproved and must not be represented as guaranteed prizes." actions={<button className="btn-gold" onClick={() => open(null)} data-testid="add-reward-btn"><Plus className="w-4 h-4" />Add reward</button>} />
+      <PageHeader title="Rewards & claims" subtitle="Set milestones, inventory and terms. Rewards must be shown as subject to eligibility and availability." actions={<button className="btn-gold" onClick={() => open(null)} data-testid="add-reward-btn"><Plus className="w-4 h-4" />Add reward</button>} />
       <Tabs defaultValue="rewards"><TabsList className="bg-slate-900 mb-4"><TabsTrigger value="rewards" data-testid="rw-tab-rewards">Rewards</TabsTrigger><TabsTrigger value="claims" data-testid="rw-tab-claims">Claims ({claims.data?.length || 0})</TabsTrigger></TabsList>
         <TabsContent value="rewards">{isLoading ? <Loader /> : <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">{data.map((r) => (
           <Glass key={r.id} className="!p-0 overflow-hidden" data-testid={`admin-reward-${r.slug}`}><img src={r.image_url} alt={r.title} className="w-full h-36 object-cover" />
@@ -85,7 +85,7 @@ function Rewards() {
         <DialogContent className="bg-[#0C1120] border-amber-500/20 max-w-2xl max-h-[88vh] overflow-y-auto" data-testid="reward-dialog"><DialogHeader><DialogTitle>{edit?.id ? "Edit" : "Add"} reward</DialogTitle></DialogHeader>
           {edit && <div className="grid sm:grid-cols-2 gap-3">
             {[["title", "Title"], ["slug", "Slug (url)"], ["category", "Category"], ["duration", "Duration (optional)"]].map(([k, l]) => <Field key={k} label={l}><Input className="inp" value={edit[k] || ""} onChange={(e) => setEdit({ ...edit, [k]: e.target.value })} data-testid={`reward-${k}-input`} /></Field>)}
-            <Field label="Milestone (simulated team volume)"><Input className="inp font-num" type="number" value={edit.milestone} onChange={(e) => setEdit({ ...edit, milestone: e.target.value })} data-testid="reward-milestone-input" /></Field>
+            <Field label="Milestone (team volume)"><Input className="inp font-num" type="number" value={edit.milestone} onChange={(e) => setEdit({ ...edit, milestone: e.target.value })} data-testid="reward-milestone-input" /></Field>
             <Field label="Inventory"><Input className="inp font-num" type="number" value={edit.inventory} onChange={(e) => setEdit({ ...edit, inventory: e.target.value })} data-testid="reward-inventory-input" /></Field>
             <Field label="Expiry date"><Input className="inp" type="date" value={(edit.expires_at || "").slice(0, 10)} onChange={(e) => setEdit({ ...edit, expires_at: e.target.value ? new Date(e.target.value).toISOString() : "" })} data-testid="reward-expiry-input" /></Field>
             <label className="flex items-center gap-2 text-sm">Active <Switch checked={edit.active} onCheckedChange={(v) => setEdit({ ...edit, active: v })} /></label>
@@ -262,26 +262,26 @@ function Settings() {
           {inp("Address", v.contact.address, (x) => sub("contact", "address", x), "set-contact-address")}
           <Field label="Company information"><Textarea className="inp" value={v.company_info} onChange={(e) => set("company_info", e.target.value)} data-testid="set-company-info" /></Field>
           <label className="flex items-center justify-between text-sm">Maintenance mode (blocks non-admin users) <Switch checked={v.maintenance_mode} onCheckedChange={(x) => set("maintenance_mode", x)} data-testid="set-maintenance" /></label>
-          <p className="text-xs text-slate-500">Demo mode: <span className="text-violet-300">ON (locked)</span> · Real money: <span className="text-red-300">disabled (requires legal approval)</span></p></Glass>
+          <p className="text-xs text-slate-500">Money mode: <span className="text-emerald-300">USDT wallet (on-chain verified)</span> · Plans and commissions: <span className="text-amber-300">coin-based only</span></p></Glass>
         <Glass className="space-y-3"><h3 className="font-semibold text-white">Telegram support</h3>
           {inp("Username", v.telegram.username, (x) => sub("telegram", "username", x), "set-tg-username")}{inp("URL (https://t.me/…)", v.telegram.url, (x) => sub("telegram", "url", x), "set-tg-url")}
           {inp("Button text", v.telegram.button_text, (x) => sub("telegram", "button_text", x), "set-tg-button")}{inp("Availability message", v.telegram.availability, (x) => sub("telegram", "availability", x), "set-tg-availability")}
           {inp("Default support message", v.telegram.default_message, (x) => sub("telegram", "default_message", x), "set-tg-message")}</Glass>
-        <Glass className="space-y-3"><h3 className="font-semibold text-white flex items-center gap-2">Coin system <DemoTag text="Demo values" /></h3>
+        <Glass className="space-y-3"><h3 className="font-semibold text-white flex items-center gap-2">Coin system</h3>
           <div className="grid grid-cols-3 gap-3">{inp("Display name", v.coin.name, (x) => sub("coin", "name", x), "set-coin-name")}{inp("Symbol", v.coin.symbol, (x) => sub("coin", "symbol", x), "set-coin-symbol")}{inp("Decimals", v.coin.decimals, (x) => sub("coin", "decimals", x), "set-coin-decimals", "number")}</div>
           <div className="grid grid-cols-2 gap-3">{Object.keys(v.coin.rates).map((c) => <div key={c}>{inp(`1 ${c} = coins`, v.coin.rates[c], (x) => sub("coin", "rates", { ...v.coin.rates, [c]: x }), `set-rate-${c}`, "number")}</div>)}</div>
           <div className="text-xs text-slate-400"><p className="font-semibold text-slate-300 mb-1">Conversion history</p>{v.coin.history?.length ? v.coin.history.map((h, i) => <p key={i}>{fdate(h.at)} · {JSON.stringify(h.rates)} → {JSON.stringify(h.changed_to)} by {h.by}</p>) : "No changes yet"}</div></Glass>
         <Glass className="space-y-3"><h3 className="font-semibold text-white">Feature flags & limits</h3>
           {Object.keys(v.features).map((k) => <label key={k} className="flex items-center justify-between text-sm capitalize">{k.replace("_", " ")}<Switch checked={v.features[k]} onCheckedChange={(x) => sub("features", k, x)} data-testid={`set-feature-${k}`} /></label>)}
           <div className="grid grid-cols-2 gap-3">{inp("Session idle timeout (min)", v.session_timeout_minutes, (x) => set("session_timeout_minutes", x), "set-session-timeout", "number")}
-            {inp("Simulation day length (sec)", v.simulation_day_seconds, (x) => set("simulation_day_seconds", x), "set-sim-day", "number")}
-            {inp("Sign-up demo coin grant", v.signup_demo_grant, (x) => set("signup_demo_grant", x), "set-grant", "number")}{inp("Team messages per day", v.team_message_daily_limit, (x) => set("team_message_daily_limit", x), "set-tm-limit", "number")}
+            {inp("Plan day length (sec)", v.simulation_day_seconds, (x) => set("simulation_day_seconds", x), "set-sim-day", "number")}
+            {inp("Sign-up coin grant", v.signup_demo_grant, (x) => set("signup_demo_grant", x), "set-grant", "number")}{inp("Team messages per day", v.team_message_daily_limit, (x) => set("team_message_daily_limit", x), "set-tm-limit", "number")}
             {inp("Withdrawal min", v.withdrawal.min, (x) => sub("withdrawal", "min", x), "set-wd-min", "number")}{inp("Withdrawal max", v.withdrawal.max, (x) => sub("withdrawal", "max", x), "set-wd-max", "number")}
             {inp("Withdrawal fee %", v.withdrawal.fee_percent, (x) => sub("withdrawal", "fee_percent", x), "set-wd-fee", "number")}{inp("Withdrawal flat fee", v.withdrawal.fee_flat, (x) => sub("withdrawal", "fee_flat", x), "set-wd-flat", "number")}</div></Glass>
         <Glass className="space-y-2 lg:col-span-2" data-testid="integrations-panel"><h3 className="font-semibold text-white">Integrations (secrets are stored in server environment variables only)</h3>
           <p className="text-sm">Cloudinary: <StatusBadge status={data.integrations.cloudinary_configured ? "active" : "failed"} /> cloud <span className="font-num">{data.integrations.cloudinary_cloud}</span></p>
           <p className="text-sm">Web Push (VAPID): <StatusBadge status={data.integrations.vapid_configured ? "active" : "failed"} /> <span className="font-num text-xs break-all">{data.integrations.vapid_public_key}</span></p>
-          <p className="text-sm">Email provider: <span className="text-violet-300">{data.integrations.email_provider}</span> · SMS OTP: <span className="text-violet-300">MOCKED</span></p></Glass>
+          <p className="text-sm">Email provider: <span className="text-violet-300">{data.integrations.email_provider}</span></p></Glass>
       </div>
     </div>
   );

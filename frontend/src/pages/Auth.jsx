@@ -21,7 +21,7 @@ const Shell = ({ title, subtitle, children }) => (
         {subtitle && <p className="text-sm text-slate-400 mt-1 mb-6">{subtitle}</p>}
         {children}
       </div>
-      <p className="text-center text-xs text-slate-500 mt-6 flex items-center justify-center gap-1"><ShieldCheck className="w-3.5 h-3.5" /> DEMO MODE · simulated funds only</p>
+      <p className="text-center text-xs text-slate-500 mt-6 flex items-center justify-center gap-1"><ShieldCheck className="w-3.5 h-3.5" /> Secured with encrypted sessions</p>
     </div>
   </div>
 );
@@ -102,12 +102,12 @@ export function Register() {
     try {
       const { data } = await api.post("/auth/register", v);
       setUser(data);
-      toast.success("Account created. Demo coins have been added.");
+      toast.success("Account created. Welcome coins have been added.");
       nav("/app");
     } catch (e) { setErr(errMsg(e)); }
   };
   return (
-    <Shell title="Create account" subtitle="Join the demonstration platform. No real money is involved.">
+    <Shell title="Create account" subtitle="Join Finzo.cc in under a minute.">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" data-testid="register-form">
         <Field label="Full name" error={errors.full_name?.message}><Input className="inp" {...register("full_name")} data-testid="register-name-input" /></Field>
         <Field label="Email" error={errors.email?.message}><Input className="inp" type="email" {...register("email")} data-testid="register-email-input" /></Field>
@@ -123,7 +123,7 @@ export function Register() {
         <Field label="Referral code (optional)" error={errors.referral_code?.message}><Input className="inp font-num uppercase" {...register("referral_code")} data-testid="register-referral-input" /></Field>
         <label className="flex gap-3 items-start text-sm text-slate-300">
           <input type="checkbox" className="mt-1 accent-amber-500" {...register("accept_terms")} data-testid="register-terms-checkbox" />
-          <span>I accept the <Link to="/legal/terms" className="text-amber-400" target="_blank">Terms</Link> and <Link to="/legal/risk" className="text-amber-400" target="_blank">Risk Disclosure</Link>, and understand all earnings are simulated.</span>
+          <span>I accept the <Link to="/legal/terms" className="text-amber-400" target="_blank">Terms</Link> and <Link to="/legal/risk" className="text-amber-400" target="_blank">Risk Disclosure</Link>, and understand plan figures are not guaranteed.</span>
         </label>
         {errors.accept_terms && <p className="text-xs text-red-400">{errors.accept_terms.message}</p>}
         <ErrorBox error={err} />

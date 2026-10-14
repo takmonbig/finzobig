@@ -5,22 +5,22 @@ import { Calculator, ArrowRight, Users } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, ReferenceLine, CartesianGrid } from "recharts";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { api, coins, errMsg } from "@/lib/api";
-import { Glass, DemoTag, ErrorBox } from "@/components/common";
+import { Glass, ErrorBox } from "@/components/common";
 import { SectionHead, Reveal } from "@/components/home/Sections";
 
 export function PlansSection({ plans = [] }) {
   const [sel, setSel] = useState(null);
   return (
     <section id="plans" className="max-w-7xl mx-auto px-4 sm:px-6 py-20">
-      <SectionHead eyebrow="Participation plans · demonstration" title="Eight interactive demonstration plans." text="These figures are hypothetical examples, not verified investment performance. Simulated amounts are never connected to withdrawable balances." />
+      <SectionHead eyebrow="Participation plans" title="Eight participation plans." text="Plan figures are not guaranteed. Plans run on Finzo Coins, which have no cash value and cannot be withdrawn or exchanged for USDT." />
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {plans.map((p, i) => (
           <Reveal key={p.id} delay={i * 0.04}>
             <button onClick={() => setSel(p)} data-testid={`plan-card-${i}`}
               className={`glass glass-hover w-full text-left p-5 ${sel?.id === p.id ? "!border-amber-400/70 shadow-[0_0_30px_rgba(245,158,11,.2)]" : ""}`}>
-              <div className="flex items-center justify-between"><span className="text-sm text-slate-400">{p.name}</span><DemoTag /></div>
+              <div className="flex items-center justify-between"><span className="text-sm text-slate-400">{p.name}</span></div>
               <p className="font-num text-3xl text-white mt-3">{coins(p.deposit, 0)}</p>
-              <p className="text-xs text-slate-500">simulated deposit</p>
+              <p className="text-xs text-slate-500">plan amount (coins)</p>
               <div className="grid grid-cols-2 gap-2 mt-4 text-xs">
                 <div><p className="text-slate-500">Daily</p><p className="font-num text-amber-300">{coins(p.daily, 0)}</p></div>
                 <div><p className="text-slate-500">Duration</p><p className="font-num text-slate-200">{p.duration_days} days</p></div>
@@ -53,19 +53,19 @@ function PlanCalculator({ plans, selected, onSelect }) {
   return (
     <Glass className="mt-10 grid lg:grid-cols-[1fr_1.3fr] gap-8" data-testid="plan-calculator">
       <div className="space-y-4">
-        <div className="flex items-center gap-2"><Calculator className="w-5 h-5 text-amber-400" /><h3 className="font-display text-xl text-white font-semibold">Hypothetical outcome calculator</h3></div>
+        <div className="flex items-center gap-2"><Calculator className="w-5 h-5 text-amber-400" /><h3 className="font-display text-xl text-white font-semibold">Plan calculator</h3></div>
         <select className="w-full bg-slate-950/60 border border-slate-700 rounded-xl px-3 py-2.5 text-sm" value={selected?.id || ""} data-testid="calc-plan-select"
           onChange={(e) => onSelect(plans.find((p) => p.id === e.target.value) || null)}>
           <option value="">Custom values</option>
           {plans.map((p) => <option key={p.id} value={p.id}>{`${p.name} — ${coins(p.deposit, 0)}`}</option>)}
         </select>
-        {[["deposit", "Simulated deposit"], ["daily", "Daily simulated amount"], ["days", "Duration (days)"]].map(([k, l]) => (
+        {[["deposit", "Plan amount"], ["daily", "Daily amount"], ["days", "Duration (days)"]].map(([k, l]) => (
           <label key={k} className="block text-sm"><span className="text-slate-400">{l}</span>
             <input type="number" min="1" disabled={!!selected} value={vals[k]} data-testid={`calc-${k}-input`} onChange={(e) => setCustom({ ...custom, [k]: Number(e.target.value) })}
               className="mt-1 w-full bg-slate-950/60 border border-slate-700 rounded-xl px-3 py-2.5 font-num disabled:opacity-60" />
           </label>
         ))}
-        <button className="btn-gold w-full" onClick={run} data-testid="calc-run-btn">Calculate hypothetical outcome</button>
+        <button className="btn-gold w-full" onClick={run} data-testid="calc-run-btn">Calculate</button>
         <ErrorBox error={err} />
       </div>
       <div>
@@ -145,18 +145,18 @@ export function TeamDiagram({ ranks = [] }) {
 export function RewardsSection({ rewards = [] }) {
   return (
     <section id="rewards" className="max-w-7xl mx-auto px-4 sm:px-6 py-20">
-      <SectionHead eyebrow="Achievements · proposed concepts" title="Reward concepts for team milestones." text="These are proposed, unapproved reward concepts — not confirmed offers or guaranteed prizes." />
+      <SectionHead eyebrow="Achievements" title="Rewards for team milestones." text="Rewards are subject to campaign terms, eligibility review and availability. They are not guaranteed." />
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {rewards.map((r, i) => (
           <Reveal key={r.id} delay={i * 0.06}>
             <Link to={`/rewards/${r.slug}`} className="group block glass overflow-hidden glass-hover" data-testid={`reward-card-${r.slug}`}>
               <div className="aspect-[4/3] overflow-hidden relative">
                 <img src={r.image_url} alt={r.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                <span className="absolute top-3 left-3 text-[10px] uppercase tracking-widest px-2 py-1 rounded bg-black/60 text-amber-300 border border-amber-500/30">Concept</span>
+                
               </div>
               <div className="p-5">
                 <h3 className="font-heading text-lg text-white">{r.title}</h3>
-                <p className="text-xs text-slate-400 mt-1">Illustrative milestone</p>
+                <p className="text-xs text-slate-400 mt-1">Team milestone</p>
                 <p className="font-num text-amber-300">{coins(r.milestone, 0)}</p>
                 <span className="text-sm text-amber-400 inline-flex items-center gap-1 mt-3">View details <ArrowRight className="w-3.5 h-3.5" /></span>
               </div>
