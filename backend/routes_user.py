@@ -402,7 +402,7 @@ async def create_withdrawal(b: WithdrawIn, user=Depends(get_current_user)):
         full = await db.users.find_one({"id": user["id"]})
         if not b.totp_code or not pyotp.TOTP(full["totp_secret"]).verify(b.totp_code, valid_window=1):
             raise HTTPException(400, "Valid 2FA code required")
-    if not re.match(DEST_RULES[b.destination_type], b.destination.strip()):
+    if not re.fullmatch(DEST_RULES[b.destination_type], b.destination.strip()):
         raise HTTPException(400, "Destination format is invalid")
     cfg = s["withdrawal"]
     amt = to_minor(b.amount)

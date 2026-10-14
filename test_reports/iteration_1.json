@@ -1,0 +1,44 @@
+{
+  "summary": "First-run comprehensive test. Backend: 36/36 tests passed (1 skipped). All critical flows validated: register (password mismatch/dup email/invalid referral/terms), login w/ 429 lockout after 5 failures, logout/logout-all/refresh/me, forgot-password + outbox + reset-password, 2FA setup/enable/login via pyotp, plan enrollment debit + idem_key dedupe, deposit reference regex + evidence folder enforcement, withdrawals/info + insufficient balance rejection, team summary generations (demo.b [1,1,1,1,0]), team members PII hidden, commission-sim math (Diamond x5 = 96500 minor; Diamond..Bronze = 70500 minor = 705.00), permission 401/403 across 7 admin endpoints, reconciliation consistent=true, liability report, campaign link normalization (inv.com -> https://inv.com) + HTML strip + bad link rejection + scheduled status, bulk suspend with confirm + login 403 + reactivate, idempotent simulation.run, Bronze user team-message send. Frontend: homepage, /login, /app (user dashboard with charts & stats), /admin (overview with metrics & alerts) all render with full data-testid coverage. Both user & admin logins work end-to-end.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/admin/campaigns", "issue": "javascript:alert(1) link returns 422 (pydantic) rather than 400 from safe_url — functionally equivalent (both reject) but the review spec expected 400. The 422 appears to come from channels validation; safe_url is never reached because `javascript:alert(1)` fails the pydantic str validation path for the audience when combined with 'all'. Actual mechanism unclear but rejection works."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/app overview (and likely other authed pages)", "issues": ["Console hydration warning: 'In HTML, <span> cannot be a child of <option>' — React hydration error flagged, may stem from a select/option element rendering a span icon. Non-blocking but should be fixed to avoid SSR/hydration mismatches."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/backend_test.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "Fix hydration warning: <span> inside <option> in a select component (likely in PublicLayout header or a form select). Replace with text-only option or use a custom dropdown.",
+    "Consider: 10-register-per-hour rate limit per IP is quite strict for testing — testing agents must clear db.rate_limits between runs. Not a bug, just a note."
+  ],
+  "critical_code_review_comments": [
+    "routes_admin.py line 553-555: __import__('core').rank_for(...) — ugly, prefer top-level `from core import rank_for` (it is already imported higher via `from core import ... recompute_rank` so just add rank_for).",
+    "routes_auth.py line 170-172 logout: cookies are deleted but with same options (samesite='none', secure=True) — good. However login_attempts counter is not cleared on logout — minor.",
+    "jobs.py acquire_lock has a race: find_one_and_update with upsert on a condition that may not match an existing locked row will raise DuplicateKeyError (caught) — fine, but the condition {'$or':[{'until':{'$lt': iso()}}, {'until': None}]} on upsert does not include name match, which is fine because unique index on name forces single doc; still would be clearer to check expiry explicitly.",
+    "core.py post_ledger: uses `-amount + reserved_delta > 0` to require sufficient available balance, but reserved_delta is used only for withdrawals (both ledger and reserve updated atomically) — logic is correct but very dense; add comment.",
+    "routes_user.py mask_name: for single-word names returns 'M****' etc. Correct, but when gen==1 returns full name — ok.",
+    "routes_user.py line 406-407: destination format validation uses re.match without ^$ anchors on $ side — re.match anchors start only; could allow trailing garbage. Should use re.fullmatch or anchor $.",
+    "routes_admin.py withdraw action completed/rejected: `release` not called when action=='completed' (uses reserved_delta=-amount in post_ledger). But when rejected after 'approved' or 'processing', the open_lock gets unset but reserve was already released? Actually in approved/processing state the reservation is still live and only released on reject. Looks correct.",
+    "server.py: no graceful handling of CORS_ORIGINS missing. OK since .env has it.",
+    "All endpoints use /api prefix properly; MongoDB _id consistently excluded via {_id:0}."
+  ],
+  "updated_files": [
+    "/app/backend/tests/__init__.py",
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "success_rate": {"backend": "100% (36/36 passed, 1 skipped by design)", "frontend": "100% of core flows tested (home, login, user dashboard, admin dashboard)"},
+  "test_credentials": "Admin: takmonboost90@gmail.com / Admin@Demo2026; Demo users: demo.a..demo.f@example.com / Demo@12345",
+  "seed_data_creation": "Backend tests registered ~10 TEST_*/test_* users (test_fp_, test_rp_, TEST_lock_, TEST_bulk_, TEST_2fa_, TEST_reg_, TEST_FP). These are ephemeral demo users with mobile_verified=false and have no financial impact. db.rate_limits was cleared once to recover from register rate limit (10/hr/IP).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend tests at /app/backend/tests/backend_test.py use pytest-xdist (-n 2 --dist loadscope per pytest.ini). If rate-limited (register 10/hr, login lockout 5/15min), clear with: python asyncio call to db.rate_limits.delete_many({}) and db.login_attempts.delete_many({}). All seeded demo users (demo.a..demo.f) remained intact and were not suspended permanently (bulk test created a fresh TEST_bulk user). simulation_day_seconds was NOT modified; stays at default 86400. Frontend data-testids are comprehensive on login (login-email-input, login-password-input, login-submit-btn), sidebar (sidebar-*), stats (stat-*, ad-*). Public homepage header has a hydration warning (span inside option) worth checking in a select component.",
+  "rca of the issue": "No critical issues found. Minor hydration warning: likely a select element renders a child <span> inside its <option>, which is invalid HTML. Reproduction: open any page, check browser console. Mitigation: locate the component (search for `<option>` and `<span>` co-location in /app/frontend/src) and replace with icon-less text or move the icon outside the <select>."
+}

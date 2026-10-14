@@ -57,7 +57,7 @@ function PlanCalculator({ plans, selected, onSelect }) {
         <select className="w-full bg-slate-950/60 border border-slate-700 rounded-xl px-3 py-2.5 text-sm" value={selected?.id || ""} data-testid="calc-plan-select"
           onChange={(e) => onSelect(plans.find((p) => p.id === e.target.value) || null)}>
           <option value="">Custom values</option>
-          {plans.map((p) => <option key={p.id} value={p.id}>{p.name} — {coins(p.deposit, 0)}</option>)}
+          {plans.map((p) => <option key={p.id} value={p.id}>{`${p.name} — ${coins(p.deposit, 0)}`}</option>)}
         </select>
         {[["deposit", "Simulated deposit"], ["daily", "Daily simulated amount"], ["days", "Duration (days)"]].map(([k, l]) => (
           <label key={k} className="block text-sm"><span className="text-slate-400">{l}</span>

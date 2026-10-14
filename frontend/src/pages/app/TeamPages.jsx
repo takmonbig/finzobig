@@ -96,7 +96,7 @@ function Members() {
     <Glass>
       <div className="flex flex-wrap gap-2 mb-4">
         <div className="relative flex-1 min-w-[180px]"><Search className="w-4 h-4 absolute left-3 top-3 text-slate-500" /><Input className="inp pl-9" placeholder="Search by name" value={f.q} onChange={(e) => setF({ ...f, q: e.target.value, page: 1 })} data-testid="team-search-input" /></div>
-        <select className={sel} value={f.generation} onChange={(e) => setF({ ...f, generation: e.target.value, page: 1 })} data-testid="team-gen-filter"><option value="">All generations</option>{[1, 2, 3, 4, 5].map((g) => <option key={g} value={g}>Generation {g}</option>)}</select>
+        <select className={sel} value={f.generation} onChange={(e) => setF({ ...f, generation: e.target.value, page: 1 })} data-testid="team-gen-filter"><option value="">All generations</option>{[1, 2, 3, 4, 5].map((g) => <option key={g} value={g}>{`Generation ${g}`}</option>)}</select>
         <select className={sel} value={f.rank} onChange={(e) => setF({ ...f, rank: e.target.value, page: 1 })} data-testid="team-rank-filter"><option value="">All ranks</option>{["Member", ...RANKS].map((r) => <option key={r}>{r}</option>)}</select>
         <button className="btn-ghost" onClick={() => downloadCsv("/team/export", "team.csv").catch((e) => toast.error(errMsg(e)))} data-testid="team-export-btn"><Download className="w-4 h-4" />Export</button>
       </div>

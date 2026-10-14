@@ -11,7 +11,7 @@ import time
 import os
 import cloudinary.utils
 from core import (db, iso, now, uid, client_ip, require_admin, audit, get_settings, bust_settings, post_ledger, release, wallets_of, to_minor,
-                  RANKS, COMMISSION, team_counts, recompute_rank, safe_url, strip_html, notify_user, ACCOUNTS, clean)
+                  RANKS, COMMISSION, team_counts, recompute_rank, safe_url, strip_html, notify_user, ACCOUNTS, clean, rank_for)
 from routes_user import paged, page_args, verify_asset, P0, team_volume
 from jobs import run_simulation, dispatch_campaign, resolve_audience
 
@@ -552,7 +552,7 @@ async def inspect(user_id: str, admin=Depends(require_admin)):
     chain = [await db.users.find_one({"id": a}, {"_id": 0, "id": 1, "full_name": 1, "email": 1, "rank": 1}) for a in u["ancestors"][:5]]
     gens = [await db.users.count_documents({f"ancestors.{i}": user_id}) for i in range(5)]
     direct, team = await team_counts(user_id)
-    return {"user": u, "upline": [c for c in chain if c], "generations": gens, "direct": direct, "team": team, "computed_rank": __import__("core").rank_for(direct, team)}
+    return {"user": u, "upline": [c for c in chain if c], "generations": gens, "direct": direct, "team": team, "computed_rank": rank_for(direct, team)}
 
 
 @router.get("/team/anomalies")
